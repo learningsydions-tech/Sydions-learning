@@ -6,9 +6,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Users, Shield, Trophy, Settings, PlusCircle, ArrowLeft } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { showError } from "@/utils/toast";
+import { showError, showSuccess } from "@/utils/toast";
+import { useSession } from "@/contexts/SessionContext";
 
 interface GuildDetail {
   id: string;
@@ -23,6 +24,23 @@ interface GuildDetail {
   challenges: { name: string; type: string; status: string }[];
   recentActivity: { text: string; time: string }[];
 }
+
+// Helper function to check if the user is already a member (mocked for now, but we'll fetch real membership status)
+const fetchMembershipStatus = async (guildId: string, userId: string): Promise<boolean> => {
+  const { count, error } = await supabase
+    .from("guild_members")
+    .select("id", { count: 'exact', head: true })
+    .eq("guild_id", guildId)
+    .eq("user_id", userId);
+
+  if (error) {
+    console.error("Error fetching membership status:", error);
+    // If there's an error, assume not a member to allow joining attempt
+    return false;
+  }
+  
+  return (count || 0) > 0;
+};
 
 const fetchGuildDetail = async (guildId: string): Promise<GuildDetail> => {
   const { data, error } = await supabase
@@ -61,27 +79,67 @@ const fetchGuildDetail = async (guildId: string): Promise<GuildDetail> => {
 
 const GuildPage = () => {
   const { guildId } = useParams<{ guildId: string }>();
+  const { session, loading: sessionLoading } = useSession();
+  const userId = session?.user?.id;
+  const queryClient = useQueryClient();
 
-  const { data: guild, isLoading, error } = useQuery<GuildDetail>({
+  const { data: guild, isLoading: guildLoading, error: guildError } = useQuery<GuildDetail>({
     queryKey: ["guildDetail", guildId],
     queryFn: () => fetchGuildDetail(guildId!),
     enabled: !!guildId,
+  });
+  
+  const { data: isMember, isLoading: membershipLoading } = useQuery<boolean>({
+    queryKey: ["guildMembership", guildId, userId],
+    queryFn: () => fetchMembershipStatus(guildId!, userId!),
+    enabled: !!guildId && !!userId && !sessionLoading,
+  });
+
+  const joinGuildMutation = useMutation({
+    mutationFn: async () => {
+      if (!userId || !guildId) throw new Error("User or Guild ID missing.");
+      
+      const { error } = await supabase
+        .from("guild_members")
+        .insert({
+          guild_id: guildId,
+          user_id: userId,
+          role: 'member', // Default role
+        });
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      showSuccess(`Successfully joined ${guild?.name || 'the guild'}!`);
+      // Invalidate membership status and potentially guild detail to reflect new member count
+      queryClient.invalidateQueries({ queryKey: ["guildMembership", guildId, userId] });
+      queryClient.invalidateQueries({ queryKey: ["guildDetail", guildId] });
+    },
+    onError: (error) => {
+      console.error("Failed to join guild:", error);
+      showError(`Failed to join guild: ${error.message}`);
+    },
   });
 
   if (!guildId) {
     return <div className="text-center py-12 text-destructive">Invalid guild ID.</div>;
   }
 
-  if (isLoading) {
+  if (sessionLoading || guildLoading || membershipLoading) {
     return <div className="text-center py-12 text-muted-foreground">Loading guild details...</div>;
   }
 
-  if (error) {
-    return <div className="text-center py-12 text-destructive">Error loading guild: {error.message}</div>;
+  if (guildError) {
+    return <div className="text-center py-12 text-destructive">Error loading guild: {guildError.message}</div>;
+  }
+  
+  if (!guild) {
+    return <div className="text-center py-12 text-muted-foreground">Guild not found.</div>;
   }
 
   const displayImage = guild.image_url || "/placeholder.svg";
   const displayDescription = guild.description || "No description provided.";
+  const isJoining = joinGuildMutation.isPending;
 
   return (
     <div className="space-y-8">
@@ -109,9 +167,20 @@ const GuildPage = () => {
                 <span>{guild.memberCount} members</span>
               </div>
             </div>
-            <Button className="ml-auto">
-              <PlusCircle className="w-4 h-4 mr-2" />
-              Join Guild
+            
+            {/* Join/Leave Button */}
+            <Button 
+              className="ml-auto"
+              onClick={() => joinGuildMutation.mutate()}
+              disabled={isMember || isJoining}
+              variant={isMember ? "secondary" : "default"}
+            >
+              {isJoining ? "Joining..." : isMember ? "Joined" : (
+                <>
+                  <PlusCircle className="w-4 h-4 mr-2" />
+                  Join Guild
+                </>
+              )}
             </Button>
           </div>
         </CardContent>
