@@ -1,101 +1,60 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
-import { Coins } from "lucide-react";
-import ShopItemCard from "@/components/ShopItemCard";
-
-const mockShopItems = [
-  {
-    name: "XP Boost (1 hour)",
-    description: "Double your experience points from challenges for one hour.",
-    price: 500,
-    imageUrl: "/placeholder.svg",
-    rarity: "Rare",
-  },
-  {
-    name: "Cyber Samurai Avatar Frame",
-    description: "A futuristic, neon-lit frame for your profile avatar.",
-    price: 1200,
-    imageUrl: "/placeholder.svg",
-    rarity: "Epic",
-  },
-  {
-    name: "Challenge Hint Token",
-    description: "Redeem this token for a helpful hint on any active challenge.",
-    price: 150,
-    imageUrl: "/placeholder.svg",
-    rarity: "Common",
-  },
-  {
-    name: "Legendary Loot Box",
-    description: "A mysterious box containing a guaranteed legendary item.",
-    price: 5000,
-    imageUrl: "/placeholder.svg",
-    rarity: "Legendary",
-  },
-  {
-    name: "Profile Banner: 'The Matrix'",
-    description: "A cool, animated profile banner with cascading green code.",
-    price: 800,
-    imageUrl: "/placeholder.svg",
-    rarity: "Rare",
-  },
-  {
-    name: "Guild XP Contribution",
-    description: "Contribute 1000 XP directly to your guild's total.",
-    price: 2500,
-    imageUrl: "/placeholder.svg",
-    rarity: "Epic",
-  },
-];
-
-const filterCategories = ["All", "Power-ups", "Cosmetics", "Consumables"];
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Coins, User, Shield } from "lucide-react";
 
 const ShopPage = () => {
-  const userBalance = 750; // Mock data
+  const userBalance = 0; // Mock data from the image
 
   return (
     <div className="space-y-8">
       {/* Header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+      <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold">Shop</h1>
+          <h1 className="text-3xl font-bold">The Coin Shop</h1>
           <p className="text-muted-foreground mt-1">
-            Spend your hard-earned points on exclusive items and power-ups.
+            Spend your coins on cosmetic items.
           </p>
         </div>
-        <div className="flex items-center gap-2 p-3 rounded-lg bg-muted">
-          <Coins className="w-6 h-6 text-amber-500" />
-          <span className="text-xl font-bold">{userBalance.toLocaleString()}</span>
-          <p className="text-muted-foreground">Your Balance</p>
-        </div>
+        <Button className="bg-amber-400 text-amber-900 hover:bg-amber-500 dark:bg-amber-500 dark:text-amber-900 dark:hover:bg-amber-600">
+          <Coins className="w-4 h-4 mr-2" />
+          {userBalance} Coins
+        </Button>
       </div>
 
-      {/* Filters */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-2">
-        {filterCategories.map((category) => (
-          <Button
-            key={category}
-            variant={category === "All" ? "default" : "outline"}
-            className="whitespace-nowrap"
+      {/* Tabs */}
+      <Tabs defaultValue="for-you" className="w-full">
+        <TabsList className="bg-transparent p-0 border-b rounded-none justify-start h-auto">
+          <TabsTrigger
+            value="for-you"
+            className="bg-transparent text-muted-foreground rounded-none shadow-none data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary"
           >
-            {category}
-          </Button>
-        ))}
-      </div>
-
-      {/* Shop Items Grid */}
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {mockShopItems.map((item) => (
-          <ShopItemCard
-            key={item.name}
-            name={item.name}
-            description={item.description}
-            price={item.price}
-            imageUrl={item.imageUrl}
-            rarity={item.rarity}
-          />
-        ))}
-      </div>
+            <User className="w-4 h-4 mr-2" />
+            For You
+          </TabsTrigger>
+          <TabsTrigger
+            value="for-your-guild"
+            className="bg-transparent text-muted-foreground rounded-none shadow-none data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary"
+          >
+            <Shield className="w-4 h-4 mr-2" />
+            For Your Guild
+          </TabsTrigger>
+        </TabsList>
+        <TabsContent value="for-you" className="pt-6">
+          <div className="flex items-center justify-center text-center py-20">
+            <p className="text-muted-foreground">
+              No items available for you at the moment.
+            </p>
+          </div>
+        </TabsContent>
+        <TabsContent value="for-your-guild" className="pt-6">
+          <div className="flex items-center justify-center text-center py-20">
+            <p className="text-muted-foreground">
+              No items available for your guild at the moment.
+            </p>
+          </div>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };
