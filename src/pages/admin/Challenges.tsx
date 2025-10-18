@@ -3,11 +3,13 @@ import {
   ListFilter,
   MoreHorizontal,
   PlusCircle,
+  Pencil,
+  Trash2,
 } from "lucide-react";
 import { Link } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { showError } from "@/utils/toast";
+import { showError, showSuccess } from "@/utils/toast";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -42,6 +44,17 @@ import {
   TabsList,
   TabsTrigger,
 } from "@/components/ui/tabs";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 interface Challenge {
   id: string;
@@ -73,9 +86,31 @@ const fetchAllChallenges = async (): Promise<Challenge[]> => {
 };
 
 const ChallengesPage = () => {
+  const queryClient = useQueryClient();
+  
   const { data: challenges, isLoading, error } = useQuery<Challenge[]>({
     queryKey: ["adminChallenges"],
     queryFn: fetchAllChallenges,
+  });
+
+  const deleteChallengeMutation = useMutation({
+    mutationFn: async (challengeId: string) => {
+      const { error } = await supabase
+        .from("challenges")
+        .delete()
+        .eq("id", challengeId);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      showSuccess("Challenge deleted successfully.");
+      queryClient.invalidateQueries({ queryKey: ["adminChallenges"] });
+      queryClient.invalidateQueries({ queryKey: ["activeChallenges"] });
+    },
+    onError: (error) => {
+      console.error("Challenge deletion failed:", error);
+      showError(`Failed to delete challenge: ${error.message}`);
+    },
   });
 
   if (isLoading) {
@@ -128,9 +163,39 @@ const ChallengesPage = () => {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
                   <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                  <DropdownMenuItem>Edit</DropdownMenuItem>
+                  <DropdownMenuItem>
+                    <Pencil className="h-4 w-4 mr-2" /> Edit
+                  </DropdownMenuItem>
                   <DropdownMenuItem>Copy</DropdownMenuItem>
-                  <DropdownMenuItem>Delete</DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <DropdownMenuItem 
+                        onSelect={(e) => e.preventDefault()} // Prevent dropdown closing immediately
+                        className="text-destructive focus:text-destructive"
+                      >
+                        <Trash2 className="h-4 w-4 mr-2" /> Delete
+                      </DropdownMenuItem>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          This action will permanently delete the challenge "{challenge.title}". This cannot be undone.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel disabled={deleteChallengeMutation.isPending}>Cancel</AlertDialogCancel>
+                        <AlertDialogAction 
+                          onClick={() => deleteChallengeMutation.mutate(challenge.id)}
+                          disabled={deleteChallengeMutation.isPending}
+                          className="bg-destructive hover:bg-destructive/90"
+                        >
+                          {deleteChallengeMutation.isPending ? "Deleting..." : "Confirm Delete"}
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
                 </DropdownMenuContent>
               </DropdownMenu>
             </TableCell>
