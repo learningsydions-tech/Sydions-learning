@@ -16,6 +16,7 @@ import MessagesPage from "./pages/Messages";
 import OnboardingPage from "./pages/Onboarding";
 import ProfilePage from "./pages/Profile";
 import SettingsPage from "./pages/Settings";
+import ShopPage from "./pages/Shop";
 
 const queryClient = new QueryClient();
 
@@ -104,6 +105,14 @@ const App = () => (
             element={
               <Layout>
                 <SettingsPage />
+              </Layout>
+            }
+          />
+          <Route
+            path="/shop"
+            element={
+              <Layout>
+                <ShopPage />
               </Layout>
             }
           />
