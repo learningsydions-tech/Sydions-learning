@@ -1,5 +1,5 @@
 import React from "react";
-import { Calendar, Users, Star, Trophy, Zap } from "lucide-react";
+import { Calendar, Users, Medal, TrendingUp, Trophy, Zap, Star, Target } from "lucide-react";
 import StatCard from "@/components/StatCard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -12,25 +12,25 @@ const Dashboard = () => {
       title: "Active Challenges",
       value: 12,
       icon: Calendar,
-      color: "bg-primary/10 text-primary",
+      color: "bg-blue-100 text-blue-600", // More professional blue
     },
     {
       title: "Submissions",
       value: 8,
       icon: Users,
-      color: "bg-secondary text-secondary-foreground",
+      color: "bg-gray-100 text-gray-600", // Neutral gray
     },
     {
       title: "Your Rank",
       value: "Expert",
       icon: Trophy,
-      color: "bg-purple-100 text-purple-600 dark:bg-purple-500/20 dark:text-purple-400",
+      color: "bg-purple-100 text-purple-600", // Professional purple
     },
     {
       title: "Total XP",
       value: "2,450",
       icon: Zap,
-      color: "bg-amber-100 text-amber-600 dark:bg-amber-500/20 dark:text-amber-400",
+      color: "bg-amber-100 text-amber-600", // Professional amber
     },
   ];
 
@@ -65,8 +65,8 @@ const Dashboard = () => {
   return (
     <div className="space-y-8">
       {/* Header with enhanced styling */}
-      <div className="text-center py-6 bg-primary/10 rounded-xl">
-        <h1 className="text-3xl font-bold text-primary">
+      <div className="text-center py-6 bg-blue-50 rounded-xl">
+        <h1 className="text-3xl font-bold text-blue-800">
           Welcome back, {userName}!
         </h1>
         <p className="text-muted-foreground mt-2">
@@ -90,7 +90,7 @@ const Dashboard = () => {
       {/* Featured Challenges Section */}
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {featuredChallenges.map((challenge) => (
-          <Card key={challenge.id} className="border hover:shadow-md transition-shadow">
+          <Card key={challenge.id} className="border border-gray-200 hover:shadow-md transition-shadow">
             <CardHeader>
               <CardTitle className="flex items-center justify-between">
                 <span>{challenge.title}</span>
@@ -102,11 +102,11 @@ const Dashboard = () => {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex justify-between items-center">
-                <span className="text-sm text-muted-foreground">{challenge.participants} participants</span>
-                <span className="text-sm font-medium text-primary">{challenge.reward}</span>
+                <span className="text-sm text-gray-600">{challenge.participants} participants</span>
+                <span className="text-sm font-medium text-blue-600">{challenge.reward}</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="inline-flex items-center rounded-full bg-secondary px-3 py-1 text-xs font-medium text-secondary-foreground">
+                <span className="inline-flex items-center rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-800">
                   {challenge.difficulty}
                 </span>
                 <Button variant="default" size="sm">
@@ -119,13 +119,13 @@ const Dashboard = () => {
       </div>
 
       {/* Call to Action Section */}
-      <Card className="bg-primary/10 border-primary/20">
+      <Card className="bg-blue-50 border border-blue-100">
         <CardContent className="py-8 text-center">
-          <h2 className="text-2xl font-bold text-primary mb-2">Ready for a New Challenge?</h2>
-          <p className="mb-4 text-primary/90">
+          <h2 className="text-2xl font-bold text-blue-800 mb-2">Ready for a New Challenge?</h2>
+          <p className="mb-4 text-blue-600">
             Explore our full catalog of challenges and start leveling up your skills today!
           </p>
-          <Button>
+          <Button className="bg-blue-600 hover:bg-blue-700 text-white">
             Browse All Challenges
           </Button>
         </CardContent>
