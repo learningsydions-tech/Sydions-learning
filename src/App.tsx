@@ -8,6 +8,7 @@ import NotFound from "./pages/NotFound";
 import Layout from "./components/Layout";
 import ChallengesPage from "./pages/Challenges";
 import ExplorePage from "./pages/Explore";
+import FriendsPage from "./pages/Friends";
 
 const queryClient = new QueryClient();
 
@@ -39,6 +40,14 @@ const App = () => (
             element={
               <Layout>
                 <ExplorePage />
+              </Layout>
+            }
+          />
+          <Route
+            path="/friends"
+            element={
+              <Layout>
+                <FriendsPage />
               </Layout>
             }
           />
