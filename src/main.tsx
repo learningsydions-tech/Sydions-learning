@@ -4,7 +4,7 @@ import "./globals.css";
 import { ThemeProvider } from "next-themes";
 
 createRoot(document.getElementById("root")!).render(
-  <ThemeProvider defaultTheme="system" enableSystem>
+  <ThemeProvider defaultTheme="dark" forcedTheme="dark">
     <App />
   </ThemeProvider>
 );
