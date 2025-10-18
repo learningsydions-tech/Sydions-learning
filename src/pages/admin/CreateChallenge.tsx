@@ -1,5 +1,5 @@
-import React from "react";
-import { Link } from "react-router-dom";
+import React, { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -25,9 +25,64 @@ import { CalendarIcon } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { showError, showSuccess } from "@/utils/toast";
+import { useSession } from "@/contexts/SessionContext";
 
 const CreateChallengePage = () => {
-  const [date, setDate] = React.useState<Date>();
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const { session } = useSession();
+
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [type, setType] = useState("solo");
+  const [difficulty, setDifficulty] = useState("beginner");
+  const [deadline, setDeadline] = useState<Date | undefined>();
+  const [maxPoints, setMaxPoints] = useState(100);
+
+  const createChallengeMutation = useMutation({
+    mutationFn: async () => {
+      if (!session?.user.id) throw new Error("User not authenticated.");
+      if (!title.trim()) throw new Error("Challenge title is required.");
+      if (maxPoints <= 0) throw new Error("Max points must be positive.");
+
+      const { data, error } = await supabase
+        .from("challenges")
+        .insert({
+          title: title.trim(),
+          description: description.trim() || null,
+          type: type,
+          difficulty: difficulty,
+          deadline: deadline ? deadline.toISOString() : null,
+          max_points: maxPoints,
+          created_by: session.user.id,
+          status: 'draft', // Default status for new challenges
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      showSuccess("Challenge created successfully as a draft!");
+      queryClient.invalidateQueries({ queryKey: ["adminChallenges"] });
+      navigate("/admin/challenges");
+    },
+    onError: (error) => {
+      console.error("Challenge creation failed:", error);
+      showError(`Failed to create challenge: ${error.message}`);
+    },
+  });
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    createChallengeMutation.mutate();
+  };
+
+  const isPending = createChallengeMutation.isPending;
 
   return (
     <div className="space-y-8 max-w-3xl mx-auto">
@@ -39,90 +94,121 @@ const CreateChallengePage = () => {
       </div>
 
       <Card>
-        <CardContent className="pt-6">
-          <div className="space-y-6">
-            <div className="space-y-2">
-              <Label htmlFor="title">Challenge Title</Label>
-              <Input id="title" placeholder="e.g. React Masters" />
-            </div>
+        <form onSubmit={handleSubmit}>
+          <CardContent className="pt-6">
+            <div className="space-y-6">
+              <div className="space-y-2">
+                <Label htmlFor="title">Challenge Title</Label>
+                <Input 
+                  id="title" 
+                  placeholder="e.g. React Masters" 
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  required
+                  disabled={isPending}
+                />
+              </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="description">Description</Label>
-              <Textarea
-                id="description"
-                placeholder="Describe your challenge requirements..."
-                className="min-h-[100px]"
-              />
-            </div>
+              <div className="space-y-2">
+                <Label htmlFor="description">Description</Label>
+                <Textarea
+                  id="description"
+                  placeholder="Describe your challenge requirements..."
+                  className="min-h-[100px]"
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  disabled={isPending}
+                />
+              </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-2">
-                <Label htmlFor="type">Challenge Type</Label>
-                <Select defaultValue="solo">
-                  <SelectTrigger id="type">
-                    <SelectValue placeholder="Select type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="solo">Solo</SelectItem>
-                    <SelectItem value="guild">Guild</SelectItem>
-                    <SelectItem value="tag-team">Tag-Team</SelectItem>
-                  </SelectContent>
-                </Select>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <Label htmlFor="type">Challenge Type</Label>
+                  <Select 
+                    defaultValue={type} 
+                    onValueChange={setType}
+                    disabled={isPending}
+                  >
+                    <SelectTrigger id="type">
+                      <SelectValue placeholder="Select type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="solo">Solo</SelectItem>
+                      <SelectItem value="guild">Guild</SelectItem>
+                      <SelectItem value="tag-team">Tag-Team</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="difficulty">Difficulty</Label>
+                  <Select 
+                    defaultValue={difficulty} 
+                    onValueChange={setDifficulty}
+                    disabled={isPending}
+                  >
+                    <SelectTrigger id="difficulty">
+                      <SelectValue placeholder="Select difficulty" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="beginner">Beginner</SelectItem>
+                      <SelectItem value="intermediate">Intermediate</SelectItem>
+                      <SelectItem value="expert">Expert</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="difficulty">Difficulty</Label>
-                <Select defaultValue="beginner">
-                  <SelectTrigger id="difficulty">
-                    <SelectValue placeholder="Select difficulty" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="beginner">Beginner</SelectItem>
-                    <SelectItem value="intermediate">Intermediate</SelectItem>
-                    <SelectItem value="expert">Expert</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-2">
-                <Label htmlFor="deadline">Deadline</Label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant={"outline"}
-                      className={cn(
-                        "w-full justify-start text-left font-normal",
-                        !date && "text-muted-foreground"
-                      )}
-                    >
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {date ? format(date, "PPP") : <span>dd-mm-yyyy --:--</span>}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0">
-                    <Calendar
-                      mode="single"
-                      selected={date}
-                      onSelect={setDate}
-                      initialFocus
-                    />
-                  </PopoverContent>
-                </Popover>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="points">Max Points</Label>
-                <Input id="points" type="number" placeholder="100" />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <Label htmlFor="deadline">Deadline (Optional)</Label>
+                  <Popover>
+                    <PopoverTrigger asChild disabled={isPending}>
+                      <Button
+                        variant={"outline"}
+                        className={cn(
+                          "w-full justify-start text-left font-normal",
+                          !deadline && "text-muted-foreground"
+                        )}
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {deadline ? format(deadline, "PPP") : <span>dd-mm-yyyy --:--</span>}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0">
+                      <Calendar
+                        mode="single"
+                        selected={deadline}
+                        onSelect={setDeadline}
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="points">Max Points</Label>
+                  <Input 
+                    id="points" 
+                    type="number" 
+                    placeholder="100" 
+                    value={maxPoints}
+                    onChange={(e) => setMaxPoints(parseInt(e.target.value) || 0)}
+                    required
+                    min={1}
+                    disabled={isPending}
+                  />
+                </div>
               </div>
             </div>
-          </div>
-        </CardContent>
-        <CardFooter className="flex justify-end gap-2 pt-6">
-          <Button variant="outline" asChild>
-            <Link to="/admin/challenges">Cancel</Link>
-          </Button>
-          <Button>Create Challenge</Button>
-        </CardFooter>
+          </CardContent>
+          <CardFooter className="flex justify-end gap-2 pt-6">
+            <Button variant="outline" asChild disabled={isPending}>
+              <Link to="/admin/challenges">Cancel</Link>
+            </Button>
+            <Button type="submit" disabled={isPending}>
+              {isPending ? "Creating..." : "Create Challenge"}
+            </Button>
+          </CardFooter>
+        </form>
       </Card>
     </div>
   );
