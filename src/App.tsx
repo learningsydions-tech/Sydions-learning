@@ -11,6 +11,7 @@ import ExplorePage from "./pages/Explore";
 import FriendsPage from "./pages/Friends";
 import GuildsPage from "./pages/Guilds";
 import InventoryPage from "./pages/Inventory";
+import LeaderboardPage from "./pages/Leaderboard";
 
 const queryClient = new QueryClient();
 
@@ -66,6 +67,14 @@ const App = () => (
             element={
               <Layout>
                 <InventoryPage />
+              </Layout>
+            }
+          />
+          <Route
+            path="/leaderboard"
+            element={
+              <Layout>
+                <LeaderboardPage />
               </Layout>
             }
           />
