@@ -1,122 +1,123 @@
-/* Additional colorful styles to make the UI more vibrant and modern */
+/* Subtle and professional styles for a more refined UI */
 
-/* Gradient backgrounds */
+/* Subtle gradient backgrounds */
 .bg-gradient-primary {
-  background: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--accent)));
+  background: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary) / 0.9));
 }
 
 .bg-gradient-secondary {
-  background: linear-gradient(135deg, hsl(var(--secondary)), hsl(var(--info)));
+  background: linear-gradient(135deg, hsl(var(--secondary)), hsl(var(--accent) / 0.1));
 }
 
 .bg-gradient-success {
-  background: linear-gradient(135deg, hsl(var(--success)), hsl(var(--accent)));
+  background: linear-gradient(135deg, hsl(var(--success)), hsl(var(--success) / 0.9));
 }
 
-/* Colorful buttons */
+/* Subtle buttons with professional styling */
 .btn-primary-colorful {
-  background: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--accent)));
+  background: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary) / 0.9));
   border: none;
   color: white;
   transition: all 0.3s ease;
-  box-shadow: 0 4px 15px rgba(147, 51, 234, 0.3);
+  box-shadow: 0 2px 4px rgba(37, 99, 235, 0.2);
 }
 
 .btn-primary-colorful:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(147, 51, 234, 0.5);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(37, 99, 235, 0.3);
 }
 
 .btn-secondary-colorful {
-  background: linear-gradient(135deg, hsl(var(--secondary)), hsl(var(--info)));
-  border: none;
-  color: white;
+  background: hsl(var(--secondary));
+  border: 1px solid hsl(var(--border));
+  color: hsl(var(--foreground));
   transition: all 0.3s ease;
-  box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
 .btn-secondary-colorful:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(59, 130, 246, 0.5);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  background: hsl(var(--secondary) / 0.8);
 }
 
-/* Colorful cards */
+/* Subtle cards with professional styling */
 .card-colorful {
-  background: linear-gradient(135deg, hsl(var(--card)), hsl(var(--accent) / 0.1));
+  background: hsl(var(--card));
   border: 1px solid hsl(var(--border));
   border-radius: var(--radius);
   transition: all 0.3s ease;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
 .card-colorful:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
 }
 
-/* Animated elements */
+/* Subtle animated elements */
 .pulse-colorful {
   animation: pulse-colorful 2s infinite;
 }
 
 @keyframes pulse-colorful {
   0% {
-    box-shadow: 0 0 0 0 hsl(var(--primary) / 0.4);
+    box-shadow: 0 0 0 0 hsl(var(--primary) / 0.2);
   }
   70% {
-    box-shadow: 0 0 0 10px hsl(var(--primary) / 0);
+    box-shadow: 0 0 0 5px hsl(var(--primary) / 0);
   }
   100% {
     box-shadow: 0 0 0 0 hsl(var(--primary) / 0);
   }
 }
 
-/* Colorful badges */
+/* Professional badges */
 .badge-colorful {
-  background: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--accent)));
+  background: hsl(var(--primary));
   color: white;
   border: none;
-  font-weight: 600;
+  font-weight: 500;
 }
 
-/* Colorful progress bars */
+/* Professional progress bars */
 .progress-colorful::-webkit-progress-value {
-  background: linear-gradient(90deg, hsl(var(--primary)), hsl(var(--accent)));
+  background: hsl(var(--primary));
 }
 
 .progress-colorful::-moz-progress-bar {
-  background: linear-gradient(90deg, hsl(var(--primary)), hsl(var(--accent)));
+  background: hsl(var(--primary));
 }
 
-/* Colorful inputs */
+/* Professional inputs */
 .input-colorful {
-  border: 2px solid hsl(var(--border));
+  border: 1px solid hsl(var(--border));
   border-radius: var(--radius);
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
 }
 
 .input-colorful:focus {
   border-color: hsl(var(--primary));
-  box-shadow: 0 0 0 3px hsl(var(--primary) / 0.2);
+  box-shadow: 0 0 0 2px hsl(var(--primary) / 0.2);
 }
 
-/* Colorful alerts */
+/* Professional alerts */
 .alert-success-colorful {
-  background: linear-gradient(135deg, hsl(var(--success) / 0.1), hsl(var(--accent) / 0.1));
-  border-left: 4px solid hsl(var(--success));
+  background: hsl(var(--success) / 0.05);
+  border-left: 3px solid hsl(var(--success));
 }
 
 .alert-warning-colorful {
-  background: linear-gradient(135deg, hsl(var(--warning) / 0.1), hsl(var(--accent) / 0.1));
-  border-left: 4px solid hsl(var(--warning));
+  background: hsl(var(--warning) / 0.05);
+  border-left: 3px solid hsl(var(--warning));
 }
 
 .alert-info-colorful {
-  background: linear-gradient(135deg, hsl(var(--info) / 0.1), hsl(var(--accent) / 0.1));
-  border-left: 4px solid hsl(var(--info));
+  background: hsl(var(--info) / 0.05);
+  border-left: 3px solid hsl(var(--info));
 }
 
 .alert-error-colorful {
-  background: linear-gradient(135deg, hsl(var(--destructive) / 0.1), hsl(var(--accent) / 0.1));
-  border-left: 4px solid hsl(var(--destructive));
+  background: hsl(var(--destructive) / 0.05);
+  border-left: 3px solid hsl(var(--destructive));
 }

@@ -12,25 +12,25 @@ const Dashboard = () => {
       title: "Active Challenges",
       value: 12,
       icon: Calendar,
-      color: "bg-gradient-primary", // Using our new gradient class
+      color: "bg-blue-100 text-blue-600", // More professional blue
     },
     {
       title: "Submissions",
       value: 8,
       icon: Users,
-      color: "bg-gradient-secondary", // Using our new gradient class
+      color: "bg-gray-100 text-gray-600", // Neutral gray
     },
     {
       title: "Your Rank",
       value: "Expert",
       icon: Trophy,
-      color: "bg-gradient-success", // Using our new gradient class
+      color: "bg-purple-100 text-purple-600", // Professional purple
     },
     {
       title: "Total XP",
       value: "2,450",
       icon: Zap,
-      color: "bg-gradient-to-r from-purple-500 to-pink-500", // Custom gradient
+      color: "bg-amber-100 text-amber-600", // Professional amber
     },
   ];
 
@@ -65,11 +65,11 @@ const Dashboard = () => {
   return (
     <div className="space-y-8">
       {/* Header with enhanced styling */}
-      <div className="text-center py-6 bg-gradient-to-r from-primary/10 to-accent/10 rounded-xl">
-        <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+      <div className="text-center py-6 bg-blue-50 rounded-xl">
+        <h1 className="text-3xl font-bold text-blue-800">
           Welcome back, {userName}!
         </h1>
-        <p className="text-muted-foreground mt-2 text-lg">
+        <p className="text-muted-foreground mt-2">
           Ready to conquer new challenges today?
         </p>
       </div>
@@ -90,11 +90,11 @@ const Dashboard = () => {
       {/* Featured Challenges Section */}
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {featuredChallenges.map((challenge) => (
-          <Card key={challenge.id} className="card-colorful transition-all duration-300 hover:-translate-y-1">
+          <Card key={challenge.id} className="border border-gray-200 hover:shadow-md transition-shadow">
             <CardHeader>
               <CardTitle className="flex items-center justify-between">
                 <span>{challenge.title}</span>
-                <Star className="h-5 w-5 text-yellow-500" />
+                <Star className="h-5 w-5 text-amber-500" />
               </CardTitle>
               <p className="text-sm text-muted-foreground">
                 {challenge.description}
@@ -102,14 +102,14 @@ const Dashboard = () => {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex justify-between items-center">
-                <span className="text-sm font-medium">{challenge.participants} participants</span>
-                <span className="text-sm font-bold text-primary">{challenge.reward}</span>
+                <span className="text-sm text-gray-600">{challenge.participants} participants</span>
+                <span className="text-sm font-medium text-blue-600">{challenge.reward}</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="inline-flex items-center rounded-full bg-secondary/10 px-3 py-1 text-xs font-medium text-secondary">
+                <span className="inline-flex items-center rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-800">
                   {challenge.difficulty}
                 </span>
-                <Button className="btn-primary-colorful text-xs">
+                <Button variant="default" size="sm">
                   Join Challenge
                 </Button>
               </div>
@@ -119,13 +119,13 @@ const Dashboard = () => {
       </div>
 
       {/* Call to Action Section */}
-      <Card className="bg-gradient-primary text-white border-none">
+      <Card className="bg-blue-50 border border-blue-100">
         <CardContent className="py-8 text-center">
-          <h2 className="text-2xl font-bold mb-2">Ready for a New Challenge?</h2>
-          <p className="mb-4 opacity-90">
+          <h2 className="text-2xl font-bold text-blue-800 mb-2">Ready for a New Challenge?</h2>
+          <p className="mb-4 text-blue-600">
             Explore our full catalog of challenges and start leveling up your skills today!
           </p>
-          <Button className="bg-white text-primary hover:bg-white/90 font-bold">
+          <Button className="bg-blue-600 hover:bg-blue-700 text-white">
             Browse All Challenges
           </Button>
         </CardContent>
