@@ -1,16 +1,18 @@
 import React from "react";
 import Sidebar from "./Sidebar";
+import { cn } from "@/lib/utils";
 
 interface LayoutProps {
   children: React.ReactNode;
+  noPadding?: boolean;
 }
 
-const Layout: React.FC<LayoutProps> = ({ children }) => {
+const Layout: React.FC<LayoutProps> = ({ children, noPadding = false }) => {
   return (
     <div className="flex min-h-screen bg-background text-foreground">
       <Sidebar />
       {/* Main Content Area - offset by sidebar width */}
-      <main className="flex-1 ml-64 p-8">
+      <main className={cn("flex-1 ml-64", !noPadding && "p-8")}>
         {children}
       </main>
     </div>
