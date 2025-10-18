@@ -5,8 +5,9 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
+
+// Main Layout
 import Layout from "./components/Layout";
-import ChallengesPage from "./pages/Challenges";
 import ExplorePage from "./pages/Explore";
 import FriendsPage from "./pages/Friends";
 import GuildsPage from "./pages/Guilds";
@@ -17,8 +18,13 @@ import OnboardingPage from "./pages/Onboarding";
 import ProfilePage from "./pages/Profile";
 import SettingsPage from "./pages/Settings";
 import ShopPage from "./pages/Shop";
-import UsersPage from "./pages/Users";
+
+// Admin Layout
+import AdminLayout from "./components/admin/AdminLayout";
 import AdminPage from "./pages/Admin";
+import AdminUsersPage from "./pages/admin/Users";
+import AdminChallengesPage from "./pages/admin/Challenges";
+import AdminSettingsPage from "./pages/admin/Settings";
 
 const queryClient = new QueryClient();
 
@@ -29,6 +35,7 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
+          {/* User-facing routes */}
           <Route
             path="/"
             element={
@@ -38,22 +45,6 @@ const App = () => (
             }
           />
           <Route path="/onboarding" element={<OnboardingPage />} />
-          <Route
-            path="/admin"
-            element={
-              <Layout>
-                <AdminPage />
-              </Layout>
-            }
-          />
-          <Route
-            path="/challenges"
-            element={
-              <Layout>
-                <ChallengesPage />
-              </Layout>
-            }
-          />
           <Route
             path="/explore"
             element={
@@ -126,14 +117,41 @@ const App = () => (
               </Layout>
             }
           />
+
+          {/* Admin routes */}
           <Route
-            path="/users"
+            path="/admin"
             element={
-              <Layout>
-                <UsersPage />
-              </Layout>
+              <AdminLayout>
+                <AdminPage />
+              </AdminLayout>
             }
           />
+          <Route
+            path="/admin/users"
+            element={
+              <AdminLayout>
+                <AdminUsersPage />
+              </AdminLayout>
+            }
+          />
+          <Route
+            path="/admin/challenges"
+            element={
+              <AdminLayout>
+                <AdminChallengesPage />
+              </AdminLayout>
+            }
+          />
+          <Route
+            path="/admin/settings"
+            element={
+              <AdminLayout>
+                <AdminSettingsPage />
+              </AdminLayout>
+            }
+          />
+
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
