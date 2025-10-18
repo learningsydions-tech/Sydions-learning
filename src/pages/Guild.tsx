@@ -5,12 +5,13 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { Users, Shield, Trophy, Settings, PlusCircle, ArrowLeft, LogOut } from "lucide-react";
+import { Users, Shield, Trophy, Settings, PlusCircle, ArrowLeft, LogOut, Zap } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { showError, showSuccess } from "@/utils/toast";
 import { useSession } from "@/contexts/SessionContext";
 import GuildSettingsTab from "@/components/GuildSettingsTab";
+import { Progress } from "@/components/ui/progress";
 
 interface GuildMember {
   user_id: string;
@@ -35,6 +36,10 @@ interface GuildDetail {
   tags: string[];
   challenges: { name: string; type: string; status: string }[];
   recentActivity: { text: string; time: string }[];
+  // Mocked Leveling fields
+  level: number;
+  currentXp: number;
+  xpToNextLevel: number;
 }
 
 // Helper function to check if the user is already a member
@@ -83,7 +88,11 @@ const fetchGuildDetail = async (guildId: string): Promise<GuildDetail> => {
         { text: "CyberNinja started a new challenge: 'Web App Pentesting'", time: "2h ago" },
         { text: "CodeWizard joined the guild.", time: "1d ago" },
         { text: "The guild reached 100 members!", time: "3d ago" },
-    ]
+    ],
+    // Mocked Leveling Data
+    level: 5,
+    currentXp: 3500,
+    xpToNextLevel: 5000,
   } as GuildDetail;
 };
 
@@ -187,6 +196,8 @@ const GuildPage = () => {
       role: member.role.charAt(0).toUpperCase() + member.role.slice(1), // Capitalize role
     };
   });
+  
+  const xpProgress = (guild.currentXp / guild.xpToNextLevel) * 100;
 
   return (
     <div className="space-y-8">
@@ -207,7 +218,7 @@ const GuildPage = () => {
               <AvatarImage src={displayImage} alt={guild.name} />
               <AvatarFallback>{guild.name.slice(0, 2).toUpperCase()}</AvatarFallback>
             </Avatar>
-            <div className="ml-6">
+            <div className="ml-6 flex-1">
               <h1 className="text-3xl font-bold">{guild.name}</h1>
               <div className="flex items-center text-sm text-muted-foreground mt-1">
                 <Users className="w-4 h-4 mr-2" />
@@ -234,6 +245,23 @@ const GuildPage = () => {
                 </>
               )}
             </Button>
+          </div>
+          
+          {/* Leveling Progress */}
+          <div className="mt-6 pt-6 border-t">
+            <div className="flex justify-between items-center mb-2">
+              <div className="flex items-center gap-2">
+                <Trophy className="w-5 h-5 text-amber-500" />
+                <span className="font-semibold text-lg">Level {guild.level}</span>
+              </div>
+              <div className="text-sm text-muted-foreground">
+                {guild.currentXp.toLocaleString()} / {guild.xpToNextLevel.toLocaleString()} XP
+              </div>
+            </div>
+            <Progress value={xpProgress} className="h-2" />
+            <p className="text-xs text-muted-foreground mt-1">
+              {guild.xpToNextLevel - guild.currentXp} XP until Level {guild.level + 1}
+            </p>
           </div>
         </CardContent>
       </Card>
