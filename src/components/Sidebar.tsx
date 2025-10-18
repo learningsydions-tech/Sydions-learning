@@ -39,7 +39,7 @@ const Sidebar = () => {
       </div>
 
       {/* Navigation Links */}
-      <nav className="flex-grow p-2 space-y-1 overflow-y-auto">
+      <nav className="flex-grow p-2 space-y-1 overflow-y-auto no-scrollbar">
         {navItems.map((item) => {
           const isActive = currentPath === item.href;
           const Icon = item.icon;

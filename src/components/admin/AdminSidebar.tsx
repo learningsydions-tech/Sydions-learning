@@ -45,7 +45,7 @@ const AdminSidebar = () => {
         </h1>
       </div>
 
-      <nav className="flex-grow p-2 space-y-1 overflow-y-auto">
+      <nav className="flex-grow p-2 space-y-1 overflow-y-auto no-scrollbar">
         <Link
           to="/"
           className={cn(
