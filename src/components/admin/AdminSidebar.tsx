@@ -15,7 +15,6 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { Switch } from "@/components/ui/switch";
 
 interface AdminNavItem {
   name: string;
@@ -78,10 +77,6 @@ const AdminSidebar = () => {
       </nav>
 
       <div className="p-4 border-t border-sidebar-border space-y-4">
-        <div className="flex items-center justify-between">
-            <span className="text-sm font-medium">Admin</span>
-            <Switch id="admin-theme-switch" />
-        </div>
         <Button
           variant="ghost"
           className="w-full justify-start text-sm text-sidebar-foreground hover:bg-sidebar-accent/50"
