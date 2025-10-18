@@ -1,61 +1,68 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
 import InventoryItemCard from "@/components/InventoryItemCard";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { showError } from "@/utils/toast";
+import { useSession } from "@/contexts/SessionContext";
+import { Box } from "lucide-react";
 
-const mockInventory = [
-  {
-    name: "XP Boost (30 min)",
-    rarity: "Common",
-    imageUrl: "/placeholder.svg",
-    quantity: 5,
-  },
-  {
-    name: "SQL Injection Badge",
-    rarity: "Rare",
-    imageUrl: "/placeholder.svg",
-    quantity: 1,
-  },
-  {
-    name: "Cyber Samurai Skin",
-    rarity: "Epic",
-    imageUrl: "/placeholder.svg",
-    quantity: 1,
-  },
-  {
-    name: "Hint Token",
-    rarity: "Common",
-    imageUrl: "/placeholder.svg",
-    quantity: 12,
-  },
-  {
-    name: "Early Submission Pass",
-    rarity: "Rare",
-    imageUrl: "/placeholder.svg",
-    quantity: 2,
-  },
-  {
-    name: "Design Guru Badge",
-    rarity: "Legendary",
-    imageUrl: "/placeholder.svg",
-    quantity: 1,
-  },
-  {
-    name: "Firewall Fortification",
-    rarity: "Epic",
-    imageUrl: "/placeholder.svg",
-    quantity: 1,
-  },
-  {
-    name: "100 XP Grant",
-    rarity: "Common",
-    imageUrl: "/placeholder.svg",
-    quantity: 3,
-  },
-];
+interface InventoryItem {
+  id: string;
+  quantity: number;
+  shop_items: {
+    name: string;
+    rarity: "Common" | "Rare" | "Epic" | "Legendary";
+    image_url: string;
+  };
+}
+
+const fetchInventory = async (userId: string): Promise<InventoryItem[]> => {
+  const { data, error } = await supabase
+    .from("user_inventory")
+    .select(`
+      id,
+      quantity,
+      shop_items (name, rarity, image_url)
+    `)
+    .eq("user_id", userId)
+    .limit(50);
+
+  if (error) {
+    showError("Failed to load inventory.");
+    throw error;
+  }
+
+  return data as InventoryItem[];
+};
 
 const filterCategories = ["All", "Badges", "Power-ups", "Cosmetics", "Consumables"];
 
 const InventoryPage = () => {
+  const { session, loading: sessionLoading } = useSession();
+  const userId = session?.user?.id;
+
+  const { data: inventory, isLoading, error } = useQuery<InventoryItem[]>({
+    queryKey: ["userInventory", userId],
+    queryFn: () => fetchInventory(userId!),
+    enabled: !!userId && !sessionLoading,
+  });
+
+  if (sessionLoading || isLoading) {
+    return <div className="text-center py-12 text-muted-foreground">Loading inventory...</div>;
+  }
+
+  if (error) {
+    return <div className="text-center py-12 text-destructive">Error loading inventory: {error.message}</div>;
+  }
+
+  const displayInventory = inventory?.map(item => ({
+    name: item.shop_items.name,
+    rarity: item.shop_items.rarity,
+    imageUrl: item.shop_items.image_url || "/placeholder.svg",
+    quantity: item.quantity,
+  })) || [];
+
   return (
     <div className="space-y-8">
       {/* Header */}
@@ -80,17 +87,27 @@ const InventoryPage = () => {
       </div>
 
       {/* Inventory Grid */}
-      <div className="grid gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-        {mockInventory.map((item) => (
-          <InventoryItemCard
-            key={item.name}
-            name={item.name}
-            rarity={item.rarity}
-            imageUrl={item.imageUrl}
-            quantity={item.quantity}
-          />
-        ))}
-      </div>
+      {displayInventory.length > 0 ? (
+        <div className="grid gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+          {displayInventory.map((item, index) => (
+            <InventoryItemCard
+              key={index} // Using index as key since item ID is nested
+              name={item.name}
+              rarity={item.rarity}
+              imageUrl={item.imageUrl}
+              quantity={item.quantity}
+            />
+          ))}
+        </div>
+      ) : (
+        <div className="flex-grow flex flex-col items-center justify-center text-center h-[calc(100vh-22rem)]">
+          <Box className="w-16 h-16 text-muted-foreground mb-4" />
+          <h2 className="text-xl font-semibold">Your inventory is empty</h2>
+          <p className="text-muted-foreground mt-2">
+            Complete challenges or visit the shop to acquire items.
+          </p>
+        </div>
+      )}
     </div>
   );
 };
