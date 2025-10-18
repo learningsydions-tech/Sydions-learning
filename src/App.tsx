@@ -7,6 +7,7 @@ import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import Layout from "./components/Layout";
 import ChallengesPage from "./pages/Challenges";
+import ExplorePage from "./pages/Explore";
 
 const queryClient = new QueryClient();
 
@@ -30,6 +31,14 @@ const App = () => (
             element={
               <Layout>
                 <ChallengesPage />
+              </Layout>
+            }
+          />
+          <Route
+            path="/explore"
+            element={
+              <Layout>
+                <ExplorePage />
               </Layout>
             }
           />
