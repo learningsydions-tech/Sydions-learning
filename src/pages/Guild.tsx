@@ -6,36 +6,82 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Users, Shield, Trophy, Settings, PlusCircle, ArrowLeft } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { showError } from "@/utils/toast";
 
-// Mock data for a single guild
-const mockGuild = {
-  id: "cyber-knights",
-  name: "Cyber Knights",
-  description: "A guild for cybersecurity enthusiasts and professionals, focusing on ethical hacking and defense strategies.",
-  memberCount: 128,
-  imageUrl: "/placeholder.svg",
-  tags: ["Security", "Hacking", "CTF"],
-  members: [
-    { name: "CyberNinja", avatarUrl: "/placeholder.svg", role: "Admin" },
-    { name: "CodeWizard", avatarUrl: "/placeholder.svg", role: "Member" },
-    { name: "PixelPerfect", avatarUrl: "/placeholder.svg", role: "Member" },
-    { name: "DataDynamo", avatarUrl: "/placeholder.svg", role: "Moderator" },
-  ],
-  challenges: [
-    { name: "Vulnerability Assessment", type: "Security", status: "Active" },
-    { name: "Capture The Flag #12", type: "CTF", status: "Completed" },
-  ],
-  recentActivity: [
-      { text: "CyberNinja started a new challenge: 'Web App Pentesting'", time: "2h ago" },
-      { text: "CodeWizard joined the guild.", time: "1d ago" },
-      { text: "The guild reached 100 members!", time: "3d ago" },
-  ]
+interface GuildDetail {
+  id: string;
+  name: string;
+  description: string | null;
+  image_url: string | null;
+  owner_id: string;
+  // Mocked fields for display purposes
+  memberCount: number;
+  tags: string[];
+  members: { name: string; avatarUrl: string; role: string }[];
+  challenges: { name: string; type: string; status: string }[];
+  recentActivity: { text: string; time: string }[];
+}
+
+const fetchGuildDetail = async (guildId: string): Promise<GuildDetail> => {
+  const { data, error } = await supabase
+    .from("guilds")
+    .select("id, name, description, image_url, owner_id")
+    .eq("id", guildId)
+    .single();
+
+  if (error) {
+    showError("Failed to load guild details.");
+    throw error;
+  }
+
+  // Mock related data for display purposes
+  return {
+    ...data,
+    memberCount: 128, // Mock
+    tags: ["Security", "Hacking", "CTF"], // Mock
+    members: [
+      { name: "CyberNinja", avatarUrl: "/placeholder.svg", role: "Admin" },
+      { name: "CodeWizard", avatarUrl: "/placeholder.svg", role: "Member" },
+      { name: "PixelPerfect", avatarUrl: "/placeholder.svg", role: "Member" },
+      { name: "DataDynamo", avatarUrl: "/placeholder.svg", role: "Moderator" },
+    ],
+    challenges: [
+      { name: "Vulnerability Assessment", type: "Security", status: "Active" },
+      { name: "Capture The Flag #12", type: "CTF", status: "Completed" },
+    ],
+    recentActivity: [
+        { text: "CyberNinja started a new challenge: 'Web App Pentesting'", time: "2h ago" },
+        { text: "CodeWizard joined the guild.", time: "1d ago" },
+        { text: "The guild reached 100 members!", time: "3d ago" },
+    ]
+  } as GuildDetail;
 };
 
 const GuildPage = () => {
-  const { guildId } = useParams();
-  // In a real app, you would fetch guild data based on guildId
-  const guild = mockGuild;
+  const { guildId } = useParams<{ guildId: string }>();
+
+  const { data: guild, isLoading, error } = useQuery<GuildDetail>({
+    queryKey: ["guildDetail", guildId],
+    queryFn: () => fetchGuildDetail(guildId!),
+    enabled: !!guildId,
+  });
+
+  if (!guildId) {
+    return <div className="text-center py-12 text-destructive">Invalid guild ID.</div>;
+  }
+
+  if (isLoading) {
+    return <div className="text-center py-12 text-muted-foreground">Loading guild details...</div>;
+  }
+
+  if (error) {
+    return <div className="text-center py-12 text-destructive">Error loading guild: {error.message}</div>;
+  }
+
+  const displayImage = guild.image_url || "/placeholder.svg";
+  const displayDescription = guild.description || "No description provided.";
 
   return (
     <div className="space-y-8">
@@ -53,7 +99,7 @@ const GuildPage = () => {
         <CardContent className="p-6 pt-0">
           <div className="flex items-end -mt-16">
             <Avatar className="h-32 w-32 border-4 border-background">
-              <AvatarImage src={guild.imageUrl} alt={guild.name} />
+              <AvatarImage src={displayImage} alt={guild.name} />
               <AvatarFallback>{guild.name.slice(0, 2).toUpperCase()}</AvatarFallback>
             </Avatar>
             <div className="ml-6">
@@ -87,7 +133,7 @@ const GuildPage = () => {
               <CardTitle>About {guild.name}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
-              <p className="text-muted-foreground">{guild.description}</p>
+              <p className="text-muted-foreground">{displayDescription}</p>
               <div className="flex flex-wrap gap-2">
                 {guild.tags.map((tag) => (
                   <Badge key={tag} variant="secondary">{tag}</Badge>
