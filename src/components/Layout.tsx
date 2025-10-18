@@ -1,6 +1,5 @@
 import React from "react";
 import Sidebar from "./Sidebar";
-import { ThemeSwitcher } from "./ThemeSwitcher";
 import { cn } from "@/lib/utils";
 
 interface LayoutProps {
@@ -14,10 +13,6 @@ const Layout: React.FC<LayoutProps> = ({ children, noPadding = false }) => {
       <Sidebar />
       {/* Main Content Area - offset by sidebar width */}
       <main className={cn("flex-1 ml-64 flex flex-col", !noPadding && "p-8")}>
-        {/* Header with theme switcher */}
-        <header className="flex justify-end mb-6">
-          <ThemeSwitcher />
-        </header>
         {/* Page content */}
         <div className="flex-1">
           {children}
