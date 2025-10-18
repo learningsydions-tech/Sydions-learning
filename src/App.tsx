@@ -18,6 +18,7 @@ import ProfilePage from "./pages/Profile";
 import SettingsPage from "./pages/Settings";
 import ShopPage from "./pages/Shop";
 import UsersPage from "./pages/Users";
+import AdminPage from "./pages/Admin";
 
 const queryClient = new QueryClient();
 
@@ -37,6 +38,14 @@ const App = () => (
             }
           />
           <Route path="/onboarding" element={<OnboardingPage />} />
+          <Route
+            path="/admin"
+            element={
+              <Layout>
+                <AdminPage />
+              </Layout>
+            }
+          />
           <Route
             path="/challenges"
             element={
