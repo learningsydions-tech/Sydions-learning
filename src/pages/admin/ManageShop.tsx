@@ -1,8 +1,54 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { showError } from "@/utils/toast";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import { MoreHorizontal, Pencil, Trash2 } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+
+interface ShopItem {
+  id: string;
+  name: string;
+  type: string;
+  price: number;
+  rarity: string;
+  is_reward_only: boolean;
+  is_for_guild_store: boolean;
+}
+
+const fetchAllShopItems = async (): Promise<ShopItem[]> => {
+  const { data, error } = await supabase
+    .from("shop_items")
+    .select("id, name, type, price, rarity, is_reward_only, is_for_guild_store")
+    .order("created_at", { ascending: false })
+    .limit(50);
+
+  if (error) {
+    showError("Failed to load shop items for admin panel.");
+    throw error;
+  }
+
+  return data as ShopItem[];
+};
 
 const ManageShopPage = () => {
+  const { data: items, isLoading, error } = useQuery<ShopItem[]>({
+    queryKey: ["adminShopItems"],
+    queryFn: fetchAllShopItems,
+  });
+
+  if (isLoading) {
+    return <div className="text-center py-12 text-muted-foreground">Loading shop items...</div>;
+  }
+
+  if (error) {
+    return <div className="text-center py-12 text-destructive">Error loading shop items: {error.message}</div>;
+  }
+
   return (
     <div className="space-y-8">
       {/* Header */}
@@ -18,10 +64,81 @@ const ManageShopPage = () => {
         </Button>
       </div>
 
-      {/* Empty State Content */}
-      <div className="flex items-center justify-center text-center py-20 bg-card rounded-lg border">
-        <p className="text-muted-foreground">No shop items created yet.</p>
-      </div>
+      {/* Item List */}
+      <Card>
+        <CardHeader>
+          <CardTitle>All Shop Items</CardTitle>
+          <CardDescription>
+            {items?.length} items found.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="p-0">
+          {items && items.length > 0 ? (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Type</TableHead>
+                  <TableHead>Price</TableHead>
+                  <TableHead>Rarity</TableHead>
+                  <TableHead>Flags</TableHead>
+                  <TableHead>
+                    <span className="sr-only">Actions</span>
+                  </TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {items.map((item) => (
+                  <TableRow key={item.id}>
+                    <TableCell className="font-medium">{item.name}</TableCell>
+                    <TableCell>{item.type}</TableCell>
+                    <TableCell>{item.price.toLocaleString()} Coins</TableCell>
+                    <TableCell>{item.rarity}</TableCell>
+                    <TableCell>
+                      <div className="flex gap-2">
+                        {item.is_reward_only && <Badge variant="secondary">Reward Only</Badge>}
+                        {item.is_for_guild_store && <Badge variant="secondary">Guild Store</Badge>}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            aria-haspopup="true"
+                            size="icon"
+                            variant="ghost"
+                          >
+                            <MoreHorizontal className="h-4 w-4" />
+                            <span className="sr-only">Toggle menu</span>
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                          <DropdownMenuItem>
+                            <Pencil className="h-4 w-4 mr-2" /> Edit
+                          </DropdownMenuItem>
+                          <DropdownMenuItem className="text-destructive">
+                            <Trash2 className="h-4 w-4 mr-2" /> Delete
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          ) : (
+            <div className="flex items-center justify-center text-center py-20 bg-card rounded-lg">
+              <p className="text-muted-foreground">No shop items created yet.</p>
+            </div>
+          )}
+        </CardContent>
+        <CardFooter>
+          <div className="text-xs text-muted-foreground">
+            Showing <strong>1-{items?.length || 0}</strong> of <strong>{items?.length || 0}</strong> items
+          </div>
+        </CardFooter>
+      </Card>
     </div>
   );
 };

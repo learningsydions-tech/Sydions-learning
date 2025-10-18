@@ -3,21 +3,54 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Pencil, Trash2 } from "lucide-react";
 import CreateLevelModal from "@/components/admin/CreateLevelModal";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { showError } from "@/utils/toast";
 
-const mockLevels = [
-  { level: 1, rank: "No Rank", xp: 0 },
-  { level: 2, rank: "Rookie", xp: 50 },
-  { level: 3, rank: "Trainee", xp: 250 },
-  { level: 4, rank: "Apprentice", xp: 500 },
-  { level: 5, rank: "Initiate", xp: 1000 },
-  { level: 6, rank: "Learner", xp: 1500 },
-  { level: 7, rank: "Explorer", xp: 2000 },
-  { level: 8, rank: "Adept", xp: 2500 },
-  { level: 9, rank: "Operator", xp: 3500 },
-];
+interface UserLevel {
+  level_number: number;
+  rank_name: string;
+  xp_required: number;
+  reward_item_id: string | null;
+  shop_items: { name: string } | null;
+}
+
+const fetchUserLevels = async (): Promise<UserLevel[]> => {
+  const { data, error } = await supabase
+    .from("user_levels")
+    .select(`
+      level_number,
+      rank_name,
+      xp_required,
+      reward_item_id,
+      shop_items (name)
+    `)
+    .order("level_number", { ascending: true })
+    .limit(50);
+
+  if (error) {
+    showError("Failed to load user levels.");
+    throw error;
+  }
+
+  return data as UserLevel[];
+};
 
 const ManageLevelsPage = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  
+  const { data: levels, isLoading, error } = useQuery<UserLevel[]>({
+    queryKey: ["userLevels"],
+    queryFn: fetchUserLevels,
+  });
+
+  if (isLoading) {
+    return <div className="text-center py-12 text-muted-foreground">Loading levels...</div>;
+  }
+
+  if (error) {
+    return <div className="text-center py-12 text-destructive">Error loading levels: {error.message}</div>;
+  }
 
   return (
     <>
@@ -37,34 +70,40 @@ const ManageLevelsPage = () => {
         <Card>
           <CardContent className="p-0">
             <div className="divide-y">
-              {mockLevels.map((item) => (
-                <div key={item.level} className="flex items-center justify-between p-4 hover:bg-muted/50">
-                  <div className="flex items-center gap-4">
-                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground font-bold">
-                      {item.level}
+              {levels && levels.length > 0 ? (
+                levels.map((item) => (
+                  <div key={item.level_number} className="flex items-center justify-between p-4 hover:bg-muted/50">
+                    <div className="flex items-center gap-4">
+                      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground font-bold">
+                        {item.level_number}
+                      </div>
+                      <div>
+                        <p className="font-semibold">
+                          Level {item.level_number} - {item.rank_name}
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          Requires {item.xp_required.toLocaleString()} XP
+                        </p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="font-semibold">
-                        Level {item.level} - {item.rank}
-                      </p>
-                      <p className="text-sm text-muted-foreground">
-                        Requires {item.xp.toLocaleString()} XP
-                      </p>
+                    <div className="flex items-center gap-4">
+                      <span className="text-sm text-muted-foreground">
+                        {item.shop_items?.name ? `Reward: ${item.shop_items.name}` : "No rewards assigned"}
+                      </span>
+                      <Button variant="ghost" size="icon">
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                      <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive">
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
                     </div>
                   </div>
-                  <div className="flex items-center gap-4">
-                    <span className="text-sm text-muted-foreground">
-                      No rewards assigned
-                    </span>
-                    <Button variant="ghost" size="icon">
-                      <Pencil className="h-4 w-4" />
-                    </Button>
-                    <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive">
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
+                ))
+              ) : (
+                <div className="flex items-center justify-center text-center py-20">
+                  <p className="text-muted-foreground">No user levels defined yet.</p>
                 </div>
-              ))}
+              )}
             </div>
           </CardContent>
         </Card>
