@@ -10,19 +10,76 @@ import {
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Edit, Shield, Trophy, Zap, Users, FolderKanban, Award } from "lucide-react";
+import { useSession } from "@/contexts/SessionContext";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { showError } from "@/utils/toast";
+import { format } from "date-fns";
 
-const mockUser = {
-  name: "itzkarthik.cyber",
-  email: "itzkarthik.cyber@gmail.com",
-  avatarUrl: "/placeholder.svg",
-  joinDate: "Joined on August 2023",
-  rank: "Rookie",
-  xp: 0,
-  challengesCompleted: 0,
-  guild: "None",
+interface Profile {
+  id: string;
+  first_name: string | null;
+  last_name: string | null;
+  avatar_url: string | null;
+  updated_at: string | null;
+  // Mocked fields for display purposes
+  rank: string;
+  xp: number;
+  challengesCompleted: number;
+  guild: string;
+}
+
+const fetchProfile = async (userId: string): Promise<Profile> => {
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("id, first_name, last_name, avatar_url, updated_at")
+    .eq("id", userId)
+    .single();
+
+  if (error) {
+    showError("Failed to load profile.");
+    throw error;
+  }
+
+  // Combine names and mock stats
+  const fullName = [data.first_name, data.last_name].filter(Boolean).join(" ") || "User";
+  
+  return {
+    ...data,
+    name: fullName,
+    rank: "Rookie", // Mock
+    xp: 0, // Mock
+    challengesCompleted: 0, // Mock
+    guild: "None", // Mock
+  } as Profile;
 };
 
 const ProfilePage = () => {
+  const { session, loading: sessionLoading } = useSession();
+  const userId = session?.user?.id;
+  const userEmail = session?.user?.email;
+
+  const { data: profile, isLoading, error } = useQuery<Profile>({
+    queryKey: ["userProfile", userId],
+    queryFn: () => fetchProfile(userId!),
+    enabled: !!userId && !sessionLoading,
+  });
+
+  if (sessionLoading || isLoading) {
+    return <div className="text-center py-12 text-muted-foreground">Loading profile...</div>;
+  }
+
+  if (error) {
+    return <div className="text-center py-12 text-destructive">Error loading profile: {error.message}</div>;
+  }
+
+  const joinDate = session?.user?.created_at 
+    ? `Joined on ${format(new Date(session.user.created_at), "MMMM yyyy")}` 
+    : "Join date unknown";
+    
+  const displayName = profile?.name || userEmail || "Guest";
+  const displayAvatar = profile?.avatar_url || "/placeholder.svg";
+
   return (
     <div className="space-y-8">
       {/* Profile Header */}
@@ -31,16 +88,18 @@ const ProfilePage = () => {
         <CardContent className="p-6 pt-0">
           <div className="flex items-end -mt-12">
             <Avatar className="h-24 w-24 border-4 border-background">
-              <AvatarImage src={mockUser.avatarUrl} alt={mockUser.name} />
-              <AvatarFallback>{mockUser.name.slice(0, 2).toUpperCase()}</AvatarFallback>
+              <AvatarImage src={displayAvatar} alt={displayName} />
+              <AvatarFallback>{displayName.slice(0, 2).toUpperCase()}</AvatarFallback>
             </Avatar>
             <div className="ml-4">
-              <h1 className="text-2xl font-bold">{mockUser.name}</h1>
-              <p className="text-sm text-muted-foreground">{mockUser.joinDate}</p>
+              <h1 className="text-2xl font-bold">{displayName}</h1>
+              <p className="text-sm text-muted-foreground">{joinDate}</p>
             </div>
-            <Button variant="outline" size="sm" className="ml-auto">
-              <Edit className="w-4 h-4 mr-2" />
-              Edit Profile
+            <Button variant="outline" size="sm" className="ml-auto" asChild>
+              <Link to="/settings">
+                <Edit className="w-4 h-4 mr-2" />
+                Edit Profile
+              </Link>
             </Button>
           </div>
         </CardContent>
@@ -63,7 +122,7 @@ const ProfilePage = () => {
                 <Trophy className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{mockUser.rank}</div>
+                <div className="text-2xl font-bold">{profile?.rank}</div>
               </CardContent>
             </Card>
             <Card>
@@ -72,7 +131,7 @@ const ProfilePage = () => {
                 <Zap className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{mockUser.xp}</div>
+                <div className="text-2xl font-bold">{profile?.xp}</div>
               </CardContent>
             </Card>
             <Card>
@@ -81,7 +140,7 @@ const ProfilePage = () => {
                 <Shield className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{mockUser.challengesCompleted}</div>
+                <div className="text-2xl font-bold">{profile?.challengesCompleted}</div>
               </CardContent>
             </Card>
             <Card>
@@ -90,7 +149,7 @@ const ProfilePage = () => {
                 <Users className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{mockUser.guild}</div>
+                <div className="text-2xl font-bold">{profile?.guild}</div>
               </CardContent>
             </Card>
           </div>
