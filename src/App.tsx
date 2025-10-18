@@ -26,6 +26,10 @@ import AdminPage from "./pages/Admin";
 import AdminUsersPage from "./pages/admin/Users";
 import AdminChallengesPage from "./pages/admin/Challenges";
 import AdminSettingsPage from "./pages/admin/Settings";
+import ManageShopPage from "./pages/admin/ManageShop";
+import ManageLevelsPage from "./pages/admin/ManageLevels";
+import ManageGuildLevelsPage from "./pages/admin/ManageGuildLevels";
+import ReportsPage from "./pages/admin/Reports";
 
 const queryClient = new QueryClient();
 
@@ -158,6 +162,38 @@ function App() {
               element={
                 <AdminLayout>
                   <AdminSettingsPage />
+                </AdminLayout>
+              }
+            />
+            <Route
+              path="/admin/shop"
+              element={
+                <AdminLayout>
+                  <ManageShopPage />
+                </AdminLayout>
+              }
+            />
+            <Route
+              path="/admin/levels"
+              element={
+                <AdminLayout>
+                  <ManageLevelsPage />
+                </AdminLayout>
+              }
+            />
+            <Route
+              path="/admin/guild-levels"
+              element={
+                <AdminLayout>
+                  <ManageGuildLevelsPage />
+                </AdminLayout>
+              }
+            />
+            <Route
+              path="/admin/reports"
+              element={
+                <AdminLayout>
+                  <ReportsPage />
                 </AdminLayout>
               }
             />
