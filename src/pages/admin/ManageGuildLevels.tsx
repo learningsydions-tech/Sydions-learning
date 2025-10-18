@@ -1,11 +1,22 @@
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import CreateGuildLevelModal from "@/components/admin/CreateGuildLevelModal";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { showError } from "@/utils/toast";
+import { showError, showSuccess } from "@/utils/toast";
 import { Card, CardContent } from "@/components/ui/card";
 import { Pencil, Trash2 } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 interface GuildLevel {
   level_number: number;
@@ -36,10 +47,30 @@ const fetchGuildLevels = async (): Promise<GuildLevel[]> => {
 
 const ManageGuildLevelsPage = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const queryClient = useQueryClient();
   
   const { data: levels, isLoading, error } = useQuery<GuildLevel[]>({
     queryKey: ["guildLevels"],
     queryFn: fetchGuildLevels,
+  });
+
+  const deleteLevelMutation = useMutation({
+    mutationFn: async (levelNumber: number) => {
+      const { error } = await supabase
+        .from("guild_levels")
+        .delete()
+        .eq("level_number", levelNumber);
+
+      if (error) throw error;
+    },
+    onSuccess: (_, levelNumber) => {
+      showSuccess(`Guild Level ${levelNumber} deleted successfully.`);
+      queryClient.invalidateQueries({ queryKey: ["guildLevels"] });
+    },
+    onError: (error) => {
+      console.error("Guild level deletion failed:", error);
+      showError(`Failed to delete guild level: ${error.message}`);
+    },
   });
 
   if (isLoading) {
@@ -91,9 +122,31 @@ const ManageGuildLevelsPage = () => {
                       <Button variant="ghost" size="icon">
                         <Pencil className="h-4 w-4" />
                       </Button>
-                      <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive">
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive">
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              This action will permanently delete Guild Level {item.level_number}. This cannot be undone.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel disabled={deleteLevelMutation.isPending}>Cancel</AlertDialogCancel>
+                            <AlertDialogAction 
+                              onClick={() => deleteLevelMutation.mutate(item.level_number)}
+                              disabled={deleteLevelMutation.isPending}
+                              className="bg-destructive hover:bg-destructive/90"
+                            >
+                              {deleteLevelMutation.isPending ? "Deleting..." : "Confirm Delete"}
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
                     </div>
                   </div>
                 ))
