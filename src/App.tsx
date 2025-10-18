@@ -24,6 +24,7 @@ import ProfilePage from "./pages/Profile";
 import SettingsPage from "./pages/Settings";
 import ShopPage from "./pages/Shop";
 import ChallengesPage from "./pages/Challenges";
+import ChallengeDetailPage from "./pages/ChallengeDetail"; // <-- New Import
 
 // Admin Layout
 import AdminLayout from "./components/admin/AdminLayout";
@@ -67,6 +68,14 @@ function App() {
                 element={
                   <Layout>
                     <ChallengesPage />
+                  </Layout>
+                }
+              />
+              <Route
+                path="/challenges/:challengeId" // <-- New Route
+                element={
+                  <Layout>
+                    <ChallengeDetailPage />
                   </Layout>
                 }
               />

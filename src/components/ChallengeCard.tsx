@@ -1,10 +1,12 @@
 import React from "react";
+import { Link } from "react-router-dom";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
 
 interface ChallengeCardProps {
+  id: string;
   title: string;
   description: string;
   tags: string[];
@@ -12,7 +14,7 @@ interface ChallengeCardProps {
   imageUrl: string;
 }
 
-const ChallengeCard: React.FC<ChallengeCardProps> = ({ title, description, tags, prize, imageUrl }) => {
+const ChallengeCard: React.FC<ChallengeCardProps> = ({ id, title, description, tags, prize, imageUrl }) => {
   return (
     <Card className="overflow-hidden transition-shadow hover:shadow-lg flex flex-col">
       <CardHeader className="p-0">
@@ -32,8 +34,10 @@ const ChallengeCard: React.FC<ChallengeCardProps> = ({ title, description, tags,
           <p className="text-xs text-muted-foreground">Reward</p>
           <p className="font-bold text-lg text-primary">{prize}</p>
         </div>
-        <Button size="sm">
-          View Challenge <ArrowRight className="w-4 h-4 ml-2" />
+        <Button size="sm" asChild>
+          <Link to={`/challenges/${id}`}>
+            View Challenge <ArrowRight className="w-4 h-4 ml-2" />
+          </Link>
         </Button>
       </CardFooter>
     </Card>
