@@ -1,28 +1,24 @@
 import React from "react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 
 const ManageShopPage = () => {
   return (
     <div className="space-y-8">
-      <div>
-        <h1 className="text-3xl font-bold">Manage Shop</h1>
-        <p className="text-muted-foreground mt-1">
-          Manage shop items and categories.
-        </p>
-      </div>
-      <Card>
-        <CardHeader>
-          <CardTitle>Shop Management</CardTitle>
-          <CardDescription>
-            Configuration for the item shop.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <p className="text-muted-foreground">
-            Shop management features will be available here in a future update.
+      {/* Header */}
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-3xl font-bold">Manage Shop Items</h1>
+          <p className="text-muted-foreground mt-1">
+            Create and manage cosmetic items for users and guilds.
           </p>
-        </CardContent>
-      </Card>
+        </div>
+        <Button>+ New Item</Button>
+      </div>
+
+      {/* Empty State Content */}
+      <div className="flex items-center justify-center text-center py-20 bg-card rounded-lg border">
+        <p className="text-muted-foreground">No shop items created yet.</p>
+      </div>
     </div>
   );
 };
