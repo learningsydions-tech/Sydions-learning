@@ -9,6 +9,7 @@ import Layout from "./components/Layout";
 import ChallengesPage from "./pages/Challenges";
 import ExplorePage from "./pages/Explore";
 import FriendsPage from "./pages/Friends";
+import GuildsPage from "./pages/Guilds";
 
 const queryClient = new QueryClient();
 
@@ -48,6 +49,14 @@ const App = () => (
             element={
               <Layout>
                 <FriendsPage />
+              </Layout>
+            }
+          />
+          <Route
+            path="/guilds"
+            element={
+              <Layout>
+                <GuildsPage />
               </Layout>
             }
           />
