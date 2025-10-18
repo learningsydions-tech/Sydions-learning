@@ -11,21 +11,32 @@ import { supabase } from "@/integrations/supabase/client";
 import { showError, showSuccess } from "@/utils/toast";
 import { useSession } from "@/contexts/SessionContext";
 
+interface GuildMember {
+  user_id: string;
+  role: string;
+  profiles: {
+    first_name: string | null;
+    last_name: string | null;
+    avatar_url: string | null;
+  } | null;
+}
+
 interface GuildDetail {
   id: string;
   name: string;
   description: string | null;
   image_url: string | null;
   owner_id: string;
-  // Mocked fields for display purposes
+  // Real data fields
+  members: GuildMember[];
   memberCount: number;
+  // Mocked fields for display purposes
   tags: string[];
-  members: { name: string; avatarUrl: string; role: string }[];
   challenges: { name: string; type: string; status: string }[];
   recentActivity: { text: string; time: string }[];
 }
 
-// Helper function to check if the user is already a member (mocked for now, but we'll fetch real membership status)
+// Helper function to check if the user is already a member
 const fetchMembershipStatus = async (guildId: string, userId: string): Promise<boolean> => {
   const { count, error } = await supabase
     .from("guild_members")
@@ -35,7 +46,6 @@ const fetchMembershipStatus = async (guildId: string, userId: string): Promise<b
 
   if (error) {
     console.error("Error fetching membership status:", error);
-    // If there's an error, assume not a member to allow joining attempt
     return false;
   }
   
@@ -43,28 +53,27 @@ const fetchMembershipStatus = async (guildId: string, userId: string): Promise<b
 };
 
 const fetchGuildDetail = async (guildId: string): Promise<GuildDetail> => {
-  const { data, error } = await supabase
+  // 1. Fetch Guild details and members count
+  const { data: guildData, error: guildError, count: memberCount } = await supabase
     .from("guilds")
-    .select("id, name, description, image_url, owner_id")
+    .select("id, name, description, image_url, owner_id, guild_members(user_id, role, profiles(first_name, last_name, avatar_url))", { count: 'exact' })
     .eq("id", guildId)
     .single();
 
-  if (error) {
+  if (guildError) {
     showError("Failed to load guild details.");
-    throw error;
+    throw guildError;
   }
-
-  // Mock related data for display purposes
+  
+  // 2. Extract members and format them
+  const members = (guildData.guild_members || []) as GuildMember[];
+  
+  // 3. Combine data and mock remaining fields
   return {
-    ...data,
-    memberCount: 128, // Mock
+    ...guildData,
+    members: members,
+    memberCount: memberCount || 0, // Use the actual count
     tags: ["Security", "Hacking", "CTF"], // Mock
-    members: [
-      { name: "CyberNinja", avatarUrl: "/placeholder.svg", role: "Admin" },
-      { name: "CodeWizard", avatarUrl: "/placeholder.svg", role: "Member" },
-      { name: "PixelPerfect", avatarUrl: "/placeholder.svg", role: "Member" },
-      { name: "DataDynamo", avatarUrl: "/placeholder.svg", role: "Moderator" },
-    ],
     challenges: [
       { name: "Vulnerability Assessment", type: "Security", status: "Active" },
       { name: "Capture The Flag #12", type: "CTF", status: "Completed" },
@@ -164,6 +173,18 @@ const GuildPage = () => {
   const displayImage = guild.image_url || "/placeholder.svg";
   const displayDescription = guild.description || "No description provided.";
   const isPending = handleMembershipAction.isPending;
+  
+  const formattedMembers = guild.members.map(member => {
+    const profile = member.profiles;
+    const fullName = [profile?.first_name, profile?.last_name].filter(Boolean).join(" ") || "Unknown User";
+    const avatarUrl = profile?.avatar_url || "/placeholder.svg";
+    
+    return {
+      name: fullName,
+      avatarUrl: avatarUrl,
+      role: member.role.charAt(0).toUpperCase() + member.role.slice(1), // Capitalize role
+    };
+  });
 
   return (
     <div className="space-y-8">
@@ -256,22 +277,26 @@ const GuildPage = () => {
         <TabsContent value="members" className="mt-6">
           <Card>
             <CardHeader>
-              <CardTitle>Members</CardTitle>
+              <CardTitle>Members ({guild.memberCount})</CardTitle>
               <CardDescription>Meet the members of {guild.name}.</CardDescription>
             </CardHeader>
             <CardContent className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {guild.members.map((member) => (
-                <div key={member.name} className="flex items-center gap-4 p-4 border rounded-lg">
-                  <Avatar>
-                    <AvatarImage src={member.avatarUrl} alt={member.name} />
-                    <AvatarFallback>{member.name.charAt(0)}</AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <p className="font-semibold">{member.name}</p>
-                    <p className="text-sm text-muted-foreground">{member.role}</p>
+              {formattedMembers.length > 0 ? (
+                formattedMembers.map((member, index) => (
+                  <div key={index} className="flex items-center gap-4 p-4 border rounded-lg">
+                    <Avatar>
+                      <AvatarImage src={member.avatarUrl} alt={member.name} />
+                      <AvatarFallback>{member.name.charAt(0)}</AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <p className="font-semibold">{member.name}</p>
+                      <p className="text-sm text-muted-foreground">{member.role}</p>
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))
+              ) : (
+                <p className="text-muted-foreground col-span-full text-center py-4">No members found.</p>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
