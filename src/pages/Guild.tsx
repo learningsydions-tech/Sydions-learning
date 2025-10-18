@@ -10,6 +10,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { showError, showSuccess } from "@/utils/toast";
 import { useSession } from "@/contexts/SessionContext";
+import GuildSettingsTab from "@/components/GuildSettingsTab";
 
 interface GuildMember {
   user_id: string;
@@ -173,6 +174,7 @@ const GuildPage = () => {
   const displayImage = guild.image_url || "/placeholder.svg";
   const displayDescription = guild.description || "No description provided.";
   const isPending = handleMembershipAction.isPending;
+  const isOwner = userId === guild.owner_id;
   
   const formattedMembers = guild.members.map(member => {
     const profile = member.profiles;
@@ -217,10 +219,10 @@ const GuildPage = () => {
             <Button 
               className="ml-auto"
               onClick={handleButtonClick}
-              disabled={isPending}
+              disabled={isPending || isOwner} // Owner cannot leave their own guild (for now)
               variant={isMember ? "destructive" : "default"}
             >
-              {isPending ? "Processing..." : isMember ? (
+              {isPending ? "Processing..." : isOwner ? "Owner" : isMember ? (
                 <>
                   <LogOut className="w-4 h-4 mr-2" />
                   Leave Guild
@@ -238,11 +240,11 @@ const GuildPage = () => {
 
       {/* Tabs */}
       <Tabs defaultValue="overview">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className={`grid w-full grid-cols-${isOwner ? 4 : 3}`}>
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="members">Members</TabsTrigger>
           <TabsTrigger value="challenges">Challenges</TabsTrigger>
-          <TabsTrigger value="settings">Settings</TabsTrigger>
+          {isOwner && <TabsTrigger value="settings">Settings</TabsTrigger>}
         </TabsList>
 
         {/* Overview Tab */}
@@ -323,19 +325,29 @@ const GuildPage = () => {
         </TabsContent>
 
         {/* Settings Tab */}
-        <TabsContent value="settings" className="mt-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Guild Settings</CardTitle>
-              <CardDescription>Manage guild settings (admin only).</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground">
-                Guild settings will be available here for admins and moderators.
-              </p>
-            </CardContent>
-          </Card>
-        </TabsContent>
+        {isOwner && (
+          <TabsContent value="settings" className="mt-6">
+            <GuildSettingsTab 
+              guildId={guildId!} 
+              currentDescription={guild.description} 
+            />
+          </TabsContent>
+        )}
+        {!isOwner && (
+          <TabsContent value="settings" className="mt-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Guild Settings</CardTitle>
+                <CardDescription>Management tools for guild administrators.</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <p className="text-muted-foreground">
+                  You must be the guild owner to access these settings.
+                </p>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        )}
       </Tabs>
     </div>
   );
