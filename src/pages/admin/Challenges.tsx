@@ -5,6 +5,9 @@ import {
   PlusCircle,
 } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { showError } from "@/utils/toast";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -40,54 +43,112 @@ import {
   TabsTrigger,
 } from "@/components/ui/tabs";
 
-const challenges = [
-  {
-    name: "Vulnerability Assessment",
-    type: "Security",
-    status: "Active",
-    price: "$500.00",
-    createdAt: "2023-07-12",
-  },
-  {
-    name: "UI/UX Design Contest",
-    type: "Design",
-    status: "Completed",
-    price: "$1,000.00",
-    createdAt: "2023-06-20",
-  },
-  {
-    name: "API Integration Challenge",
-    type: "Development",
-    status: "Active",
-    price: "$750.00",
-    createdAt: "2023-08-01",
-  },
-  {
-    name: "Data Science Hackathon",
-    type: "Data",
-    status: "Draft",
-    price: "$2,000.00",
-    createdAt: "2023-09-10",
-  },
-  {
-    name: "Content Creation Bounty",
-    type: "Marketing",
-    status: "Active",
-    price: "$300.00",
-    createdAt: "2023-08-15",
-  },
-];
+interface Challenge {
+  id: string;
+  title: string;
+  type: string;
+  status: string;
+  max_points: number;
+  created_at: string;
+}
+
+const fetchAllChallenges = async (): Promise<Challenge[]> => {
+  const { data, error } = await supabase
+    .from("challenges")
+    .select("id, title, type, status, max_points, created_at")
+    .order("created_at", { ascending: false })
+    .limit(50);
+
+  if (error) {
+    showError("Failed to load challenges for admin panel.");
+    throw error;
+  }
+
+  return data.map(c => ({
+    ...c,
+    // Format max_points as a price string for display consistency
+    price: `$${c.max_points.toLocaleString()}`,
+    createdAt: new Date(c.created_at).toLocaleDateString(),
+  })) as Challenge[];
+};
 
 const ChallengesPage = () => {
+  const { data: challenges, isLoading, error } = useQuery<Challenge[]>({
+    queryKey: ["adminChallenges"],
+    queryFn: fetchAllChallenges,
+  });
+
+  if (isLoading) {
+    return <div className="text-center py-12 text-muted-foreground">Loading challenges...</div>;
+  }
+
+  if (error) {
+    return <div className="text-center py-12 text-destructive">Error loading challenges: {error.message}</div>;
+  }
+
+  const activeChallenges = challenges?.filter(c => c.status === 'active') || [];
+  const draftChallenges = challenges?.filter(c => c.status === 'draft') || [];
+  const archivedChallenges = challenges?.filter(c => c.status === 'archived') || [];
+
+  const renderChallengeTable = (list: Challenge[]) => (
+    <Table>
+      <TableHeader>
+        <TableRow>
+          <TableHead>Name</TableHead>
+          <TableHead>Type</TableHead>
+          <TableHead>Status</TableHead>
+          <TableHead>Points</TableHead>
+          <TableHead>Created at</TableHead>
+          <TableHead>
+            <span className="sr-only">Actions</span>
+          </TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {list.map((challenge) => (
+          <TableRow key={challenge.id}>
+            <TableCell className="font-medium">{challenge.title}</TableCell>
+            <TableCell>{challenge.type}</TableCell>
+            <TableCell>
+              <Badge variant="outline">{challenge.status}</Badge>
+            </TableCell>
+            <TableCell>{challenge.max_points.toLocaleString()}</TableCell>
+            <TableCell>{challenge.createdAt}</TableCell>
+            <TableCell>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    aria-haspopup="true"
+                    size="icon"
+                    variant="ghost"
+                  >
+                    <MoreHorizontal className="h-4 w-4" />
+                    <span className="sr-only">Toggle menu</span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                  <DropdownMenuItem>Edit</DropdownMenuItem>
+                  <DropdownMenuItem>Copy</DropdownMenuItem>
+                  <DropdownMenuItem>Delete</DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </TableCell>
+          </TableRow>
+        ))}
+      </TableBody>
+    </Table>
+  );
+
   return (
     <Tabs defaultValue="all">
       <div className="flex items-center">
         <TabsList>
-          <TabsTrigger value="all">All</TabsTrigger>
-          <TabsTrigger value="active">Active</TabsTrigger>
-          <TabsTrigger value="draft">Draft</TabsTrigger>
+          <TabsTrigger value="all">All ({challenges?.length || 0})</TabsTrigger>
+          <TabsTrigger value="active">Active ({activeChallenges.length})</TabsTrigger>
+          <TabsTrigger value="draft">Draft ({draftChallenges.length})</TabsTrigger>
           <TabsTrigger value="archived" className="hidden sm:flex">
-            Archived
+            Archived ({archivedChallenges.length})
           </TabsTrigger>
         </TabsList>
         <div className="ml-auto flex items-center gap-2">
@@ -137,59 +198,60 @@ const ChallengesPage = () => {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Price</TableHead>
-                  <TableHead>Created at</TableHead>
-                  <TableHead>
-                    <span className="sr-only">Actions</span>
-                  </TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {challenges.map((challenge) => (
-                  <TableRow key={challenge.name}>
-                    <TableCell className="font-medium">{challenge.name}</TableCell>
-                    <TableCell>{challenge.type}</TableCell>
-                    <TableCell>
-                      <Badge variant="outline">{challenge.status}</Badge>
-                    </TableCell>
-                    <TableCell>{challenge.price}</TableCell>
-                    <TableCell>{challenge.createdAt}</TableCell>
-                    <TableCell>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button
-                            aria-haspopup="true"
-                            size="icon"
-                            variant="ghost"
-                          >
-                            <MoreHorizontal className="h-4 w-4" />
-                            <span className="sr-only">Toggle menu</span>
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                          <DropdownMenuItem>Edit</DropdownMenuItem>
-                          <DropdownMenuItem>Copy</DropdownMenuItem>
-                          <DropdownMenuItem>Delete</DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+            {challenges && challenges.length > 0 ? renderChallengeTable(challenges) : (
+              <div className="text-center py-12 text-muted-foreground">No challenges found.</div>
+            )}
           </CardContent>
           <CardFooter>
             <div className="text-xs text-muted-foreground">
-              Showing <strong>1-5</strong> of <strong>{challenges.length}</strong> challenges
+              Showing <strong>1-{challenges?.length || 0}</strong> of <strong>{challenges?.length || 0}</strong> challenges
             </div>
           </CardFooter>
+        </Card>
+      </TabsContent>
+      <TabsContent value="active">
+        <Card>
+          <CardHeader>
+            <CardTitle>Active Challenges</CardTitle>
+            <CardDescription>
+              Challenges currently available to users.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {activeChallenges.length > 0 ? renderChallengeTable(activeChallenges) : (
+              <div className="text-center py-12 text-muted-foreground">No active challenges found.</div>
+            )}
+          </CardContent>
+        </Card>
+      </TabsContent>
+      <TabsContent value="draft">
+        <Card>
+          <CardHeader>
+            <CardTitle>Draft Challenges</CardTitle>
+            <CardDescription>
+              Challenges that are not yet published.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {draftChallenges.length > 0 ? renderChallengeTable(draftChallenges) : (
+              <div className="text-center py-12 text-muted-foreground">No draft challenges found.</div>
+            )}
+          </CardContent>
+        </Card>
+      </TabsContent>
+      <TabsContent value="archived">
+        <Card>
+          <CardHeader>
+            <CardTitle>Archived Challenges</CardTitle>
+            <CardDescription>
+              Challenges that have been completed or retired.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {archivedChallenges.length > 0 ? renderChallengeTable(archivedChallenges) : (
+              <div className="text-center py-12 text-muted-foreground">No archived challenges found.</div>
+            )}
+          </CardContent>
         </Card>
       </TabsContent>
     </Tabs>
