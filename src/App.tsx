@@ -15,6 +15,7 @@ import LeaderboardPage from "./pages/Leaderboard";
 import MessagesPage from "./pages/Messages";
 import OnboardingPage from "./pages/Onboarding";
 import ProfilePage from "./pages/Profile";
+import SettingsPage from "./pages/Settings";
 
 const queryClient = new QueryClient();
 
@@ -95,6 +96,14 @@ const App = () => (
             element={
               <Layout>
                 <ProfilePage />
+              </Layout>
+            }
+          />
+          <Route
+            path="/settings"
+            element={
+              <Layout>
+                <SettingsPage />
               </Layout>
             }
           />
