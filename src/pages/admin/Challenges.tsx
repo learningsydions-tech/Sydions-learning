@@ -4,6 +4,7 @@ import {
   MoreHorizontal,
   PlusCircle,
 } from "lucide-react";
+import { Link } from "react-router-dom";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -117,11 +118,13 @@ const ChallengesPage = () => {
               Export
             </span>
           </Button>
-          <Button size="sm" className="h-8 gap-1">
-            <PlusCircle className="h-3.5 w-3.5" />
-            <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-              Add Challenge
-            </span>
+          <Button size="sm" className="h-8 gap-1" asChild>
+            <Link to="/admin/challenges/new">
+              <PlusCircle className="h-3.5 w-3.5" />
+              <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
+                Add Challenge
+              </span>
+            </Link>
           </Button>
         </div>
       </div>
