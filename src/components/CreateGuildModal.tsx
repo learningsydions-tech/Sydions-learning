@@ -44,8 +44,8 @@ const CreateGuildModal: React.FC<CreateGuildModalProps> = ({ isOpen, onClose }) 
       if (error) throw error;
       return data;
     },
-    onSuccess: () => {
-      showSuccess("Guild created successfully!");
+    onSuccess: (newGuild) => {
+      showSuccess(`Guild '${newGuild.name}' created successfully!`);
       queryClient.invalidateQueries({ queryKey: ["guilds"] });
       setName("");
       setDescription("");
