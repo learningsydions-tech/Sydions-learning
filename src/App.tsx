@@ -11,6 +11,7 @@ import Layout from "./components/Layout";
 import ExplorePage from "./pages/Explore";
 import FriendsPage from "./pages/Friends";
 import GuildsPage from "./pages/Guilds";
+import GuildPage from "./pages/Guild";
 import InventoryPage from "./pages/Inventory";
 import LeaderboardPage from "./pages/Leaderboard";
 import MessagesPage from "./pages/Messages";
@@ -70,6 +71,14 @@ const App = () => (
             }
           />
           <Route
+            path="/guilds/:guildId"
+            element={
+              <Layout>
+                <GuildPage />
+              </Layout>
+            }
+          />
+          <Route
             path="/inventory"
             element={
               <Layout>
@@ -124,7 +133,7 @@ const App = () => (
             element={
               <AdminLayout>
                 <AdminPage />
-              </AdminLayout>
+              </Layout>
             }
           />
           <Route
@@ -132,7 +141,7 @@ const App = () => (
             element={
               <AdminLayout>
                 <AdminUsersPage />
-              </AdminLayout>
+              </Layout>
             }
           />
           <Route
@@ -140,7 +149,7 @@ const App = () => (
             element={
               <AdminLayout>
                 <AdminChallengesPage />
-              </AdminLayout>
+              </Layout>
             }
           />
           <Route
@@ -148,7 +157,7 @@ const App = () => (
             element={
               <AdminLayout>
                 <AdminSettingsPage />
-              </AdminLayout>
+              </Layout>
             }
           />
 

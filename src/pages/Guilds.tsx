@@ -6,6 +6,7 @@ import GuildCard from "@/components/GuildCard";
 
 const mockGuilds = [
   {
+    id: "cyber-knights",
     name: "Cyber Knights",
     description: "A guild for cybersecurity enthusiasts and professionals, focusing on ethical hacking and defense strategies.",
     memberCount: 128,
@@ -13,6 +14,7 @@ const mockGuilds = [
     tags: ["Security", "Hacking", "CTF"],
   },
   {
+    id: "code-wizards",
     name: "Code Wizards",
     description: "Join us to master the art of software development, from web applications to complex algorithms.",
     memberCount: 256,
@@ -20,6 +22,7 @@ const mockGuilds = [
     tags: ["Development", "Programming", "Web"],
   },
   {
+    id: "design-dynasty",
     name: "Design Dynasty",
     description: "A creative space for UI/UX designers to collaborate, share work, and push the boundaries of design.",
     memberCount: 94,
@@ -27,6 +30,7 @@ const mockGuilds = [
     tags: ["Design", "UI/UX", "Creative"],
   },
   {
+    id: "data-mavericks",
     name: "Data Mavericks",
     description: "For data scientists and analysts who love to find stories and insights hidden within the numbers.",
     memberCount: 152,
@@ -34,6 +38,7 @@ const mockGuilds = [
     tags: ["Data Science", "Analytics", "AI"],
   },
   {
+    id: "devops-vanguards",
     name: "DevOps Vanguards",
     description: "Automate everything! A guild for engineers passionate about CI/CD, cloud infrastructure, and reliability.",
     memberCount: 78,
@@ -41,6 +46,7 @@ const mockGuilds = [
     tags: ["DevOps", "Cloud", "Automation"],
   },
   {
+    id: "mobile-moguls",
     name: "Mobile Moguls",
     description: "Crafting seamless experiences on iOS and Android. Join us to build the next generation of mobile apps.",
     memberCount: 110,
@@ -80,6 +86,7 @@ const GuildsPage = () => {
         {mockGuilds.map((guild) => (
           <GuildCard
             key={guild.name}
+            id={guild.id}
             name={guild.name}
             description={guild.description}
             memberCount={guild.memberCount}

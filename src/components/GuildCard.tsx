@@ -1,10 +1,12 @@
 import React from "react";
+import { Link } from "react-router-dom";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Users, ArrowRight } from "lucide-react";
 
 interface GuildCardProps {
+  id: string;
   name: string;
   description: string;
   memberCount: number;
@@ -12,7 +14,7 @@ interface GuildCardProps {
   tags: string[];
 }
 
-const GuildCard: React.FC<GuildCardProps> = ({ name, description, memberCount, imageUrl, tags }) => {
+const GuildCard: React.FC<GuildCardProps> = ({ id, name, description, memberCount, imageUrl, tags }) => {
   return (
     <Card className="overflow-hidden transition-shadow hover:shadow-lg flex flex-col">
       <CardHeader className="p-0">
@@ -32,8 +34,10 @@ const GuildCard: React.FC<GuildCardProps> = ({ name, description, memberCount, i
           <Users className="w-4 h-4 mr-2" />
           <span>{memberCount} members</span>
         </div>
-        <Button size="sm" variant="outline">
-          View Guild <ArrowRight className="w-4 h-4 ml-2" />
+        <Button size="sm" variant="outline" asChild>
+          <Link to={`/guilds/${id}`}>
+            View Guild <ArrowRight className="w-4 h-4 ml-2" />
+          </Link>
         </Button>
       </CardFooter>
     </Card>
