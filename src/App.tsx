@@ -29,144 +29,146 @@ import AdminSettingsPage from "./pages/admin/Settings";
 
 const queryClient = new QueryClient();
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          {/* User-facing routes */}
-          <Route
-            path="/"
-            element={
-              <Layout>
-                <Index />
-              </Layout>
-            }
-          />
-          <Route path="/onboarding" element={<OnboardingPage />} />
-          <Route
-            path="/explore"
-            element={
-              <Layout>
-                <ExplorePage />
-              </Layout>
-            }
-          />
-          <Route
-            path="/friends"
-            element={
-              <Layout>
-                <FriendsPage />
-              </Layout>
-            }
-          />
-          <Route
-            path="/guilds"
-            element={
-              <Layout>
-                <GuildsPage />
-              </Layout>
-            }
-          />
-          <Route
-            path="/guilds/:guildId"
-            element={
-              <Layout>
-                <GuildPage />
-              </Layout>
-            }
-          />
-          <Route
-            path="/inventory"
-            element={
-              <Layout>
-                <InventoryPage />
-              </Layout>
-            }
-          />
-          <Route
-            path="/leaderboard"
-            element={
-              <Layout>
-                <LeaderboardPage />
-              </Layout>
-            }
-          />
-          <Route
-            path="/messages"
-            element={
-              <Layout>
-                <MessagesPage />
-              </Layout>
-            }
-          />
-          <Route
-            path="/profile"
-            element={
-              <Layout>
-                <ProfilePage />
-              </Layout>
-            }
-          />
-          <Route
-            path="/settings"
-            element={
-              <Layout>
-                <SettingsPage />
-              </Layout>
-            }
-          />
-          <Route
-            path="/shop"
-            element={
-              <Layout>
-                <ShopPage />
-              </Layout>
-            }
-          />
+function App() {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <Routes>
+            {/* User-facing routes */}
+            <Route
+              path="/"
+              element={
+                <Layout>
+                  <Index />
+                </Layout>
+              }
+            />
+            <Route path="/onboarding" element={<OnboardingPage />} />
+            <Route
+              path="/explore"
+              element={
+                <Layout>
+                  <ExplorePage />
+                </Layout>
+              }
+            />
+            <Route
+              path="/friends"
+              element={
+                <Layout>
+                  <FriendsPage />
+                </Layout>
+              }
+            />
+            <Route
+              path="/guilds"
+              element={
+                <Layout>
+                  <GuildsPage />
+                </Layout>
+              }
+            />
+            <Route
+              path="/guilds/:guildId"
+              element={
+                <Layout>
+                  <GuildPage />
+                </Layout>
+              }
+            />
+            <Route
+              path="/inventory"
+              element={
+                <Layout>
+                  <InventoryPage />
+                </Layout>
+              }
+            />
+            <Route
+              path="/leaderboard"
+              element={
+                <Layout>
+                  <LeaderboardPage />
+                </Layout>
+              }
+            />
+            <Route
+              path="/messages"
+              element={
+                <Layout>
+                  <MessagesPage />
+                </Layout>
+              }
+            />
+            <Route
+              path="/profile"
+              element={
+                <Layout>
+                  <ProfilePage />
+                </Layout>
+              }
+            />
+            <Route
+              path="/settings"
+              element={
+                <Layout>
+                  <SettingsPage />
+                </Layout>
+              }
+            />
+            <Route
+              path="/shop"
+              element={
+                <Layout>
+                  <ShopPage />
+                </Layout>
+              }
+            />
 
-          {/* Admin routes */}
-          <Route
-            path="/admin"
-            element={
-              <AdminLayout>
-                <AdminPage />
-              </Layout>
-            }
-          />
-          <Route
-            path="/admin/users"
-            element={
-              <AdminLayout>
-                <AdminUsersPage />
-              </Layout>
-            }
-          />
-          <Route
-            path="/admin/challenges"
-            element={
-              <AdminLayout>
-                <AdminChallengesPage />
-              </Layout>
-            }
-          />
-          <Route
-            path="/admin/settings"
-            element={
-              <AdminLayout>
-                <AdminSettingsPage />
-              </Layout>
-            }
-          />
+            {/* Admin routes */}
+            <Route
+              path="/admin"
+              element={
+                <AdminLayout>
+                  <AdminPage />
+                </AdminLayout>
+              }
+            />
+            <Route
+              path="/admin/users"
+              element={
+                <AdminLayout>
+                  <AdminUsersPage />
+                </AdminLayout>
+              }
+            />
+            <Route
+              path="/admin/challenges"
+              element={
+                <AdminLayout>
+                  <AdminChallengesPage />
+                </AdminLayout>
+              }
+            />
+            <Route
+              path="/admin/settings"
+              element={
+                <AdminLayout>
+                  <AdminSettingsPage />
+                </AdminLayout>
+              }
+            />
 
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BrowserRouter>
+      </TooltipProvider>
+    </QueryClientProvider>
+  );
+}
 
 export default App;
