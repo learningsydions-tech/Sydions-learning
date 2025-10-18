@@ -64,7 +64,8 @@ const CreateChallengePage = () => {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="solo">Solo</SelectItem>
-                    <SelectItem value="team">Team</SelectItem>
+                    <SelectItem value="guild">Guild</SelectItem>
+                    <SelectItem value="tag-team">Tag-Team</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
