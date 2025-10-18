@@ -54,26 +54,26 @@
   }
 
   .dark {
-    --background: 0 0% 4%; /* #0a0a0a */
-    --foreground: 0 0% 93%; /* #ededed */
+    --background: 222 39% 18%; /* main content background - lighter dark blue */
+    --foreground: 210 40% 98%; /* main text color - off-white */
 
-    --card: 0 0% 4%; /* #0a0a0a */
-    --card-foreground: 0 0% 93%; /* #ededed */
+    --card: 222 47% 11%; /* card background - darker navy */
+    --card-foreground: 210 40% 98%;
 
-    --popover: 0 0% 4%; /* #0a0a0a */
-    --popover-foreground: 0 0% 93%; /* #ededed */
+    --popover: 222 47% 11%;
+    --popover-foreground: 210 40% 98%;
 
-    --primary: 243 75% 58%; /* Vibrant purplish-blue */
-    --primary-foreground: 0 0% 100%;
+    --primary: 231 70% 65%; /* vibrant blue/purple for highlights */
+    --primary-foreground: 210 40% 98%;
 
-    --secondary: 0 0% 15%; /* #262626 */
-    --secondary-foreground: 0 0% 93%; /* #ededed */
+    --secondary: 222 47% 11%;
+    --secondary-foreground: 210 40% 98%;
 
-    --muted: 0 0% 15%; /* #262626 */
-    --muted-foreground: 215 20.2% 65.1%;
+    --muted: 222 47% 11%;
+    --muted-foreground: 215 20% 65%; /* muted text - light gray */
 
-    --accent: 243 75% 65%; /* Lighter purplish-blue */
-    --accent-foreground: 0 0% 100%;
+    --accent: 222 47% 11%;
+    --accent-foreground: 210 40% 98%;
 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
@@ -87,18 +87,18 @@
     --info: 197 96% 53%;
     --info-foreground: 0 0% 100%;
 
-    --border: 0 0% 15%; /* #262626 */
-    --input: 0 0% 15%; /* #262626 */
-    --ring: 243 75% 58%;
+    --border: 222 39% 25%; /* border for cards, etc. */
+    --input: 222 39% 25%;
+    --ring: 231 70% 65%;
 
-    --sidebar-background: 0 0% 4%; /* #0a0a0a */
-    --sidebar-foreground: 0 0% 93%; /* #ededed */
-    --sidebar-primary: 243 75% 58%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 0 0% 20%; /* #333333 */
-    --sidebar-accent-foreground: 0 0% 100%;
-    --sidebar-border: 0 0% 15%; /* #262626 */
-    --sidebar-ring: 243 75% 58%;
+    --sidebar-background: 222 47% 11%; /* sidebar background - darker navy */
+    --sidebar-foreground: 210 40% 98%;
+    --sidebar-primary: 231 70% 65%; /* logo color */
+    --sidebar-primary-foreground: 210 40% 98%;
+    --sidebar-accent: 222 47% 15%; /* hover color for sidebar items */
+    --sidebar-accent-foreground: 210 40% 98%; /* text color on hover */
+    --sidebar-border: 222 39% 25%; /* divider line */
+    --sidebar-ring: 231 70% 65%;
   }
 }
 

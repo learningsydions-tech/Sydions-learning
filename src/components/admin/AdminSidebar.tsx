@@ -49,7 +49,7 @@ const AdminSidebar = () => {
         <Link
           to="/"
           className={cn(
-            "flex items-center p-3 rounded-lg transition-colors text-sm font-medium hover:bg-sidebar-accent/50"
+            "flex items-center p-3 rounded-lg transition-colors text-sm font-medium text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-foreground"
           )}
         >
           <ArrowLeft className="w-5 h-5 mr-3" />
@@ -65,8 +65,8 @@ const AdminSidebar = () => {
               className={cn(
                 "flex items-center p-3 rounded-lg transition-colors text-sm font-medium",
                 isActive
-                  ? "bg-sidebar-accent text-sidebar-accent-foreground"
-                  : "hover:bg-sidebar-accent/50",
+                  ? "bg-sidebar-accent text-sidebar-foreground"
+                  : "text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-foreground",
               )}
             >
               <Icon className="w-5 h-5 mr-3" />
@@ -79,7 +79,7 @@ const AdminSidebar = () => {
       <div className="p-4 border-t border-sidebar-border space-y-4">
         <Button
           variant="ghost"
-          className="w-full justify-start text-sm text-sidebar-foreground hover:bg-sidebar-accent/50"
+          className="w-full justify-start text-sm text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-foreground"
         >
           <LogOut className="w-4 h-4 mr-2" />
           Sign out
