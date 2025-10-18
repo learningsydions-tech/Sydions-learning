@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { Users, Shield, Trophy, Settings, PlusCircle, ArrowLeft } from "lucide-react";
+import { Users, Shield, Trophy, Settings, PlusCircle, ArrowLeft, LogOut } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { showError, showSuccess } from "@/utils/toast";
@@ -95,31 +95,55 @@ const GuildPage = () => {
     enabled: !!guildId && !!userId && !sessionLoading,
   });
 
-  const joinGuildMutation = useMutation({
-    mutationFn: async () => {
+  const handleMembershipAction = useMutation({
+    mutationFn: async (action: 'join' | 'leave') => {
       if (!userId || !guildId) throw new Error("User or Guild ID missing.");
       
-      const { error } = await supabase
-        .from("guild_members")
-        .insert({
-          guild_id: guildId,
-          user_id: userId,
-          role: 'member', // Default role
-        });
-
-      if (error) throw error;
+      if (action === 'join') {
+        const { error } = await supabase
+          .from("guild_members")
+          .insert({
+            guild_id: guildId,
+            user_id: userId,
+            role: 'member', // Default role
+          });
+        if (error) throw error;
+        return 'joined';
+      } else {
+        // Action === 'leave'
+        const { error } = await supabase
+          .from("guild_members")
+          .delete()
+          .eq("guild_id", guildId)
+          .eq("user_id", userId);
+        
+        if (error) throw error;
+        return 'left';
+      }
     },
-    onSuccess: () => {
-      showSuccess(`Successfully joined ${guild?.name || 'the guild'}!`);
+    onSuccess: (action) => {
+      if (action === 'joined') {
+        showSuccess(`Successfully joined ${guild?.name || 'the guild'}!`);
+      } else {
+        showSuccess(`Successfully left ${guild?.name || 'the guild'}.`);
+      }
       // Invalidate membership status and potentially guild detail to reflect new member count
       queryClient.invalidateQueries({ queryKey: ["guildMembership", guildId, userId] });
       queryClient.invalidateQueries({ queryKey: ["guildDetail", guildId] });
     },
     onError: (error) => {
-      console.error("Failed to join guild:", error);
-      showError(`Failed to join guild: ${error.message}`);
+      console.error("Membership action failed:", error);
+      showError(`Failed to change membership: ${error.message}`);
     },
   });
+
+  const handleButtonClick = () => {
+    if (isMember) {
+      handleMembershipAction.mutate('leave');
+    } else {
+      handleMembershipAction.mutate('join');
+    }
+  };
 
   if (!guildId) {
     return <div className="text-center py-12 text-destructive">Invalid guild ID.</div>;
@@ -139,7 +163,7 @@ const GuildPage = () => {
 
   const displayImage = guild.image_url || "/placeholder.svg";
   const displayDescription = guild.description || "No description provided.";
-  const isJoining = joinGuildMutation.isPending;
+  const isPending = handleMembershipAction.isPending;
 
   return (
     <div className="space-y-8">
@@ -171,11 +195,16 @@ const GuildPage = () => {
             {/* Join/Leave Button */}
             <Button 
               className="ml-auto"
-              onClick={() => joinGuildMutation.mutate()}
-              disabled={isMember || isJoining}
-              variant={isMember ? "secondary" : "default"}
+              onClick={handleButtonClick}
+              disabled={isPending}
+              variant={isMember ? "destructive" : "default"}
             >
-              {isJoining ? "Joining..." : isMember ? "Joined" : (
+              {isPending ? "Processing..." : isMember ? (
+                <>
+                  <LogOut className="w-4 h-4 mr-2" />
+                  Leave Guild
+                </>
+              ) : (
                 <>
                   <PlusCircle className="w-4 h-4 mr-2" />
                   Join Guild
