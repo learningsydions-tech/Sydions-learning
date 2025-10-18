@@ -19,6 +19,7 @@ import OnboardingPage from "./pages/Onboarding";
 import ProfilePage from "./pages/Profile";
 import SettingsPage from "./pages/Settings";
 import ShopPage from "./pages/Shop";
+import ChallengesPage from "./pages/Challenges";
 
 // Admin Layout
 import AdminLayout from "./components/admin/AdminLayout";
@@ -51,6 +52,14 @@ function App() {
               }
             />
             <Route path="/onboarding" element={<OnboardingPage />} />
+            <Route
+              path="/challenges"
+              element={
+                <Layout>
+                  <ChallengesPage />
+                </Layout>
+              }
+            />
             <Route
               path="/explore"
               element={
@@ -178,7 +187,7 @@ function App() {
               element={
                 <AdminLayout>
                   <ManageLevelsPage />
-                </AdminLayout>
+                </Layout>
               }
             />
             <Route

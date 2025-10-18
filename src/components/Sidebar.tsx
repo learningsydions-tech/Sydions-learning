@@ -1,6 +1,6 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Home, Grid, Compass, MessageSquare, ShoppingBag, Box, User, Users, Shield, Trophy, Settings, LogOut, LucideIcon } from "lucide-react";
+import { Home, Grid, Compass, MessageSquare, ShoppingBag, Box, User, Users, Shield, Trophy, Settings, LogOut, LucideIcon, Calendar } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 
@@ -13,6 +13,7 @@ interface NavItem {
 const navItems: NavItem[] = [
   { name: "Dashboard", icon: Home, href: "/" },
   { name: "Admin Panel", icon: Grid, href: "/admin" },
+  { name: "Challenges", icon: Calendar, href: "/challenges" },
   { name: "Explore", icon: Compass, href: "/explore" },
   { name: "Messages", icon: MessageSquare, href: "/messages" },
   { name: "Shop", icon: ShoppingBag, href: "/shop" },
