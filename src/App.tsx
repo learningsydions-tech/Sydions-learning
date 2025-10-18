@@ -6,6 +6,10 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 
+// Auth
+import LoginPage from "./pages/Login";
+import ProtectedRoute from "./components/ProtectedRoute";
+
 // Main Layout
 import Layout from "./components/Layout";
 import ExplorePage from "./pages/Explore";
@@ -44,186 +48,191 @@ function App() {
         <Sonner />
         <BrowserRouter>
           <Routes>
-            {/* User-facing routes */}
-            <Route
-              path="/"
-              element={
-                <Layout>
-                  <Index />
-                </Layout>
-              }
-            />
+            <Route path="/login" element={<LoginPage />} />
             <Route path="/onboarding" element={<OnboardingPage />} />
-            <Route
-              path="/challenges"
-              element={
-                <Layout>
-                  <ChallengesPage />
-                </Layout>
-              }
-            />
-            <Route
-              path="/explore"
-              element={
-                <Layout>
-                  <ExplorePage />
-                </Layout>
-              }
-            />
-            <Route
-              path="/friends"
-              element={
-                <Layout>
-                  <FriendsPage />
-                </Layout>
-              }
-            />
-            <Route
-              path="/guilds"
-              element={
-                <Layout>
-                  <GuildsPage />
-                </Layout>
-              }
-            />
-            <Route
-              path="/guilds/:guildId"
-              element={
-                <Layout>
-                  <GuildPage />
-                </Layout>
-              }
-            />
-            <Route
-              path="/inventory"
-              element={
-                <Layout>
-                  <InventoryPage />
-                </Layout>
-              }
-            />
-            <Route
-              path="/leaderboard"
-              element={
-                <Layout>
-                  <LeaderboardPage />
-                </Layout>
-              }
-            />
-            <Route
-              path="/messages"
-              element={
-                <Layout noPadding>
-                  <MessagesPage />
-                </Layout>
-              }
-            />
-            <Route
-              path="/profile"
-              element={
-                <Layout>
-                  <ProfilePage />
-                </Layout>
-              }
-            />
-            <Route
-              path="/settings"
-              element={
-                <Layout>
-                  <SettingsPage />
-                </Layout>
-              }
-            />
-            <Route
-              path="/shop"
-              element={
-                <Layout>
-                  <ShopPage />
-                </Layout>
-              }
-            />
 
-            {/* Admin routes */}
-            <Route
-              path="/admin"
-              element={
-                <AdminLayout>
-                  <AdminPage />
-                </AdminLayout>
-              }
-            />
-            <Route
-              path="/admin/users"
-              element={
-                <AdminLayout>
-                  <AdminUsersPage />
-                </AdminLayout>
-              }
-            />
-            <Route
-              path="/admin/challenges"
-              element={
-                <AdminLayout>
-                  <AdminChallengesPage />
-                </AdminLayout>
-              }
-            />
-            <Route
-              path="/admin/challenges/new"
-              element={
-                <AdminLayout>
-                  <CreateChallengePage />
-                </AdminLayout>
-              }
-            />
-            <Route
-              path="/admin/settings"
-              element={
-                <AdminLayout>
-                  <AdminSettingsPage />
-                </AdminLayout>
-              }
-            />
-            <Route
-              path="/admin/shop"
-              element={
-                <AdminLayout>
-                  <ManageShopPage />
-                </AdminLayout>
-              }
-            />
-            <Route
-              path="/admin/shop/new"
-              element={
-                <AdminLayout>
-                  <CreateShopItemPage />
-                </AdminLayout>
-              }
-            />
-            <Route
-              path="/admin/levels"
-              element={
-                <AdminLayout>
-                  <ManageLevelsPage />
-                </AdminLayout>
-              }
-            />
-            <Route
-              path="/admin/guild-levels"
-              element={
-                <AdminLayout>
-                  <ManageGuildLevelsPage />
-                </AdminLayout>
-              }
-            />
-            <Route
-              path="/admin/reports"
-              element={
-                <AdminLayout>
-                  <ReportsPage />
-                </AdminLayout>
-              }
-            />
+            {/* Protected Routes */}
+            <Route element={<ProtectedRoute />}>
+              {/* User-facing routes */}
+              <Route
+                path="/"
+                element={
+                  <Layout>
+                    <Index />
+                  </Layout>
+                }
+              />
+              <Route
+                path="/challenges"
+                element={
+                  <Layout>
+                    <ChallengesPage />
+                  </Layout>
+                }
+              />
+              <Route
+                path="/explore"
+                element={
+                  <Layout>
+                    <ExplorePage />
+                  </Layout>
+                }
+              />
+              <Route
+                path="/friends"
+                element={
+                  <Layout>
+                    <FriendsPage />
+                  </Layout>
+                }
+              />
+              <Route
+                path="/guilds"
+                element={
+                  <Layout>
+                    <GuildsPage />
+                  </Layout>
+                }
+              />
+              <Route
+                path="/guilds/:guildId"
+                element={
+                  <Layout>
+                    <GuildPage />
+                  </Layout>
+                }
+              />
+              <Route
+                path="/inventory"
+                element={
+                  <Layout>
+                    <InventoryPage />
+                  </Layout>
+                }
+              />
+              <Route
+                path="/leaderboard"
+                element={
+                  <Layout>
+                    <LeaderboardPage />
+                  </Layout>
+                }
+              />
+              <Route
+                path="/messages"
+                element={
+                  <Layout noPadding>
+                    <MessagesPage />
+                  </Layout>
+                }
+              />
+              <Route
+                path="/profile"
+                element={
+                  <Layout>
+                    <ProfilePage />
+                  </Layout>
+                }
+              />
+              <Route
+                path="/settings"
+                element={
+                  <Layout>
+                    <SettingsPage />
+                  </Layout>
+                }
+              />
+              <Route
+                path="/shop"
+                element={
+                  <Layout>
+                    <ShopPage />
+                  </Layout>
+                }
+              />
+
+              {/* Admin routes */}
+              <Route
+                path="/admin"
+                element={
+                  <AdminLayout>
+                    <AdminPage />
+                  </AdminLayout>
+                }
+              />
+              <Route
+                path="/admin/users"
+                element={
+                  <AdminLayout>
+                    <AdminUsersPage />
+                  </AdminLayout>
+                }
+              />
+              <Route
+                path="/admin/challenges"
+                element={
+                  <AdminLayout>
+                    <AdminChallengesPage />
+                  </AdminLayout>
+                }
+              />
+              <Route
+                path="/admin/challenges/new"
+                element={
+                  <AdminLayout>
+                    <CreateChallengePage />
+                  </AdminLayout>
+                }
+              />
+              <Route
+                path="/admin/settings"
+                element={
+                  <AdminLayout>
+                    <AdminSettingsPage />
+                  </AdminLayout>
+                }
+              />
+              <Route
+                path="/admin/shop"
+                element={
+                  <AdminLayout>
+                    <ManageShopPage />
+                  </AdminLayout>
+                }
+              />
+              <Route
+                path="/admin/shop/new"
+                element={
+                  <AdminLayout>
+                    <CreateShopItemPage />
+                  </AdminLayout>
+                }
+              />
+              <Route
+                path="/admin/levels"
+                element={
+                  <AdminLayout>
+                    <ManageLevelsPage />
+                  </AdminLayout>
+                }
+              />
+              <Route
+                path="/admin/guild-levels"
+                element={
+                  <AdminLayout>
+                    <ManageGuildLevelsPage />
+                  </AdminLayout>
+                }
+              />
+              <Route
+                path="/admin/reports"
+                element={
+                  <AdminLayout>
+                    <ReportsPage />
+                  </AdminLayout>
+                }
+              />
+            </Route>
 
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />

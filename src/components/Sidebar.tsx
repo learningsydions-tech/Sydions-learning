@@ -3,6 +3,7 @@ import { Link, useLocation } from "react-router-dom";
 import { Home, Grid, Compass, MessageSquare, ShoppingBag, Box, User, Users, Shield, Trophy, Settings, LogOut, LucideIcon, Calendar } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { useSession } from "@/contexts/SessionContext";
 
 interface NavItem {
   name: string;
@@ -28,6 +29,11 @@ const navItems: NavItem[] = [
 const Sidebar = () => {
   const location = useLocation();
   const currentPath = location.pathname;
+  const { supabase, session } = useSession();
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+  };
 
   return (
     <div className="flex flex-col h-full w-64 bg-sidebar text-sidebar-foreground border-r border-sidebar-border fixed top-0 left-0 z-10">
@@ -64,11 +70,12 @@ const Sidebar = () => {
       {/* Footer/User Info */}
       <div className="p-4 border-t border-sidebar-border">
         <p className="text-sm text-muted-foreground mb-3 truncate">
-          itzkarthik.cyber@gmail.com
+          {session?.user?.email}
         </p>
         <Button
           variant="ghost"
           className="w-full justify-start text-sm text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-foreground"
+          onClick={handleSignOut}
         >
           <LogOut className="w-4 h-4 mr-2" />
           Sign out
