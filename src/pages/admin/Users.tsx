@@ -1,219 +1,96 @@
-import {
-  File,
-  ListFilter,
-  MoreHorizontal,
-  PlusCircle,
-  User as UserIcon,
-} from "lucide-react";
+import React from "react";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
-  DropdownMenu,
-  DropdownMenuCheckboxItem,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@/components/ui/tabs";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Search, UserCheck, UserX } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const mockUsers = [
   {
-    name: "CyberNinja",
-    email: "ninja@example.com",
-    avatarUrl: "/placeholder.svg",
-    role: "Admin",
-    status: "Active",
-    joinedAt: "2023-01-15",
-  },
-  {
-    name: "CodeWizard",
-    email: "wizard@example.com",
-    avatarUrl: "/placeholder.svg",
+    username: "test_user",
+    name: "Karthik",
     role: "User",
-    status: "Active",
-    joinedAt: "2023-02-20",
   },
   {
-    name: "PixelPerfect",
-    email: "pixel@example.com",
-    avatarUrl: "/placeholder.svg",
+    username: "anu",
+    name: "Anusha",
     role: "User",
-    status: "Suspended",
-    joinedAt: "2023-03-10",
   },
   {
-    name: "DataDynamo",
-    email: "dynamo@example.com",
-    avatarUrl: "/placeholder.svg",
-    role: "Moderator",
-    status: "Active",
-    joinedAt: "2023-04-05",
+    username: "karthik",
+    name: "Karthik",
+    role: "User",
   },
   {
-    name: "itzkarthik.cyber",
-    email: "itzkarthik.cyber@gmail.com",
-    avatarUrl: "/placeholder.svg",
+    username: "admin",
+    name: "Admin",
     role: "Admin",
-    status: "Active",
-    joinedAt: "2023-08-01",
   },
 ];
 
-const roleBadges = {
-  Admin: "default",
-  User: "secondary",
-  Moderator: "outline",
-};
-
-const statusBadges = {
-  Active: "success", // Assuming you have a 'success' variant or will style it
-  Suspended: "destructive",
-};
-
 const UsersPage = () => {
   return (
-    <Tabs defaultValue="all">
-      <div className="flex items-center">
-        <TabsList>
-          <TabsTrigger value="all">All</TabsTrigger>
-          <TabsTrigger value="active">Active</TabsTrigger>
-          <TabsTrigger value="suspended">Suspended</TabsTrigger>
-        </TabsList>
-        <div className="ml-auto flex items-center gap-2">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm" className="h-8 gap-1">
-                <ListFilter className="h-3.5 w-3.5" />
-                <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-                  Filter
-                </span>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuLabel>Filter by Role</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuCheckboxItem checked>Admin</DropdownMenuCheckboxItem>
-              <DropdownMenuCheckboxItem>User</DropdownMenuCheckboxItem>
-              <DropdownMenuCheckboxItem>Moderator</DropdownMenuCheckboxItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-          <Button size="sm" variant="outline" className="h-8 gap-1">
-            <File className="h-3.5 w-3.5" />
-            <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-              Export
-            </span>
-          </Button>
-          <Button size="sm" className="h-8 gap-1">
-            <PlusCircle className="h-3.5 w-3.5" />
-            <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-              Add User
-            </span>
-          </Button>
-        </div>
+    <div className="space-y-8">
+      {/* Header */}
+      <div>
+        <h1 className="text-3xl font-bold">Manage Users</h1>
+        <p className="text-muted-foreground mt-1">
+          View user details and manage their roles and permissions.
+        </p>
       </div>
-      <TabsContent value="all">
-        <Card>
-          <CardHeader>
-            <CardTitle>Users</CardTitle>
-            <CardDescription>
-              Manage all users in the system.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>User</TableHead>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Role</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Joined At</TableHead>
-                  <TableHead>
-                    <span className="sr-only">Actions</span>
-                  </TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {mockUsers.map((user) => (
-                  <TableRow key={user.email}>
-                    <TableCell className="font-medium">
-                      <div className="flex items-center gap-3">
-                        <Avatar className="h-8 w-8">
-                          <AvatarImage src={user.avatarUrl} alt={user.name} />
-                          <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
-                        </Avatar>
-                        <span>{user.name}</span>
-                      </div>
-                    </TableCell>
-                    <TableCell>{user.email}</TableCell>
-                    <TableCell>
-                      <Badge variant={roleBadges[user.role]}>{user.role}</Badge>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant={statusBadges[user.status]}>{user.status}</Badge>
-                    </TableCell>
-                    <TableCell>{user.joinedAt}</TableCell>
-                    <TableCell>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button
-                            aria-haspopup="true"
-                            size="icon"
-                            variant="ghost"
-                          >
-                            <MoreHorizontal className="h-4 w-4" />
-                            <span className="sr-only">Toggle menu</span>
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                          <DropdownMenuItem>Edit</DropdownMenuItem>
-                          <DropdownMenuItem>View Profile</DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem className="text-destructive">
-                            Delete
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </CardContent>
-          <CardFooter>
-            <div className="text-xs text-muted-foreground">
-              Showing <strong>1-{mockUsers.length}</strong> of <strong>{mockUsers.length}</strong> users
-            </div>
-          </CardFooter>
-        </Card>
-      </TabsContent>
-    </Tabs>
+
+      {/* Search Bar */}
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+        <Input
+          placeholder="Search by username or name..."
+          className="pl-10"
+        />
+      </div>
+
+      {/* User List */}
+      <Card>
+        <CardContent className="p-0">
+          <div className="divide-y">
+            {mockUsers.map((user, index) => (
+              <div key={index} className="flex items-center justify-between p-4 hover:bg-muted/50">
+                <div>
+                  <p className="font-semibold">{user.username}</p>
+                  <p className="text-sm text-muted-foreground">{user.name}</p>
+                </div>
+                <div className="flex items-center gap-4">
+                  <Badge
+                    variant={user.role === "Admin" ? "default" : "secondary"}
+                    className={cn(
+                      user.role === "Admin" && "bg-green-100 text-green-700 border-green-200 hover:bg-green-100"
+                    )}
+                  >
+                    {user.role}
+                  </Badge>
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    className={cn(
+                      "rounded-full h-8 w-8",
+                      user.role === "Admin"
+                        ? "bg-red-100 text-red-600 hover:bg-red-200"
+                        : "bg-green-100 text-green-600 hover:bg-green-200"
+                    )}
+                  >
+                    {user.role === "Admin" ? (
+                      <UserX className="h-4 w-4" />
+                    ) : (
+                      <UserCheck className="h-4 w-4" />
+                    )}
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+    </div>
   );
 };
 
