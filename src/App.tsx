@@ -32,6 +32,7 @@ import ManageLevelsPage from "./pages/admin/ManageLevels";
 import ManageGuildLevelsPage from "./pages/admin/ManageGuildLevels";
 import ReportsPage from "./pages/admin/Reports";
 import CreateChallengePage from "./pages/admin/CreateChallenge";
+import CreateShopItemPage from "./pages/admin/CreateShopItem";
 
 const queryClient = new QueryClient();
 
@@ -188,6 +189,14 @@ function App() {
               element={
                 <AdminLayout>
                   <ManageShopPage />
+                </AdminLayout>
+              }
+            />
+            <Route
+              path="/admin/shop/new"
+              element={
+                <AdminLayout>
+                  <CreateShopItemPage />
                 </AdminLayout>
               }
             />

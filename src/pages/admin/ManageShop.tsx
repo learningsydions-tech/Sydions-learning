@@ -1,5 +1,6 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
 
 const ManageShopPage = () => {
   return (
@@ -12,7 +13,9 @@ const ManageShopPage = () => {
             Create and manage cosmetic items for users and guilds.
           </p>
         </div>
-        <Button>+ New Item</Button>
+        <Button asChild>
+          <Link to="/admin/shop/new">+ New Item</Link>
+        </Button>
       </div>
 
       {/* Empty State Content */}
