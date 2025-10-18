@@ -9,10 +9,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
-import { Edit, Shield, Trophy, Zap, Save, Users } from "lucide-react";
+import { Edit, Shield, Trophy, Zap, Users, FolderKanban } from "lucide-react";
 
 const mockUser = {
   name: "itzkarthik.cyber",
@@ -24,13 +21,6 @@ const mockUser = {
   challengesCompleted: 0,
   guild: "None",
 };
-
-const mockAchievements = [
-  { name: "First Step", description: "Completed your first challenge." },
-  { name: "Team Player", description: "Joined your first guild." },
-  { name: "Social Butterfly", description: "Added your first friend." },
-  { name: "Bug Squasher", description: "Completed a security challenge." },
-];
 
 const ProfilePage = () => {
   return (
@@ -58,10 +48,9 @@ const ProfilePage = () => {
 
       {/* Tabs */}
       <Tabs defaultValue="overview">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="achievements">Achievements</TabsTrigger>
-          <TabsTrigger value="settings">Settings</TabsTrigger>
+          <TabsTrigger value="projects">Projects</TabsTrigger>
         </TabsList>
 
         {/* Overview Tab */}
@@ -106,57 +95,19 @@ const ProfilePage = () => {
           </div>
         </TabsContent>
 
-        {/* Achievements Tab */}
-        <TabsContent value="achievements" className="mt-6">
+        {/* Projects Tab */}
+        <TabsContent value="projects" className="mt-6">
           <Card>
             <CardHeader>
-              <CardTitle>Achievements</CardTitle>
-              <CardDescription>Badges you've earned from challenges and activities.</CardDescription>
+              <CardTitle>Projects</CardTitle>
+              <CardDescription>A collection of your projects and contributions.</CardDescription>
             </CardHeader>
-            <CardContent className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {mockAchievements.map((ach) => (
-                <div key={ach.name} className="flex items-center gap-4 p-4 border rounded-lg">
-                  <div className="p-3 bg-muted rounded-lg">
-                    <Trophy className="w-6 h-6 text-primary" />
-                  </div>
-                  <div>
-                    <p className="font-semibold">{ach.name}</p>
-                    <p className="text-sm text-muted-foreground">{ach.description}</p>
-                  </div>
-                </div>
-              ))}
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* Settings Tab */}
-        <TabsContent value="settings" className="mt-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Account Settings</CardTitle>
-              <CardDescription>Manage your account details.</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="space-y-2">
-                <Label htmlFor="username">Username</Label>
-                <Input id="username" defaultValue={mockUser.name} />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input id="email" type="email" defaultValue={mockUser.email} />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="password">New Password</Label>
-                <Input id="password" type="password" placeholder="Enter new password" />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="confirm-password">Confirm Password</Label>
-                <Input id="confirm-password" type="password" placeholder="Confirm new password" />
-              </div>
-              <Button>
-                <Save className="w-4 h-4 mr-2" />
-                Save Changes
-              </Button>
+            <CardContent className="py-20 flex flex-col items-center justify-center text-center">
+              <FolderKanban className="w-16 h-16 text-muted-foreground mb-4" />
+              <h3 className="text-xl font-semibold">No projects yet</h3>
+              <p className="text-muted-foreground mt-2">
+                Your submitted projects will appear here.
+              </p>
             </CardContent>
           </Card>
         </TabsContent>
