@@ -1,14 +1,25 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { showError } from "@/utils/toast";
+import { showError, showSuccess } from "@/utils/toast";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { MoreHorizontal, Pencil, Trash2 } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 interface ShopItem {
   id: string;
@@ -36,9 +47,31 @@ const fetchAllShopItems = async (): Promise<ShopItem[]> => {
 };
 
 const ManageShopPage = () => {
+  const queryClient = useQueryClient();
+  
   const { data: items, isLoading, error } = useQuery<ShopItem[]>({
     queryKey: ["adminShopItems"],
     queryFn: fetchAllShopItems,
+  });
+
+  const deleteItemMutation = useMutation({
+    mutationFn: async (itemId: string) => {
+      const { error } = await supabase
+        .from("shop_items")
+        .delete()
+        .eq("id", itemId);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      showSuccess("Shop item deleted successfully.");
+      queryClient.invalidateQueries({ queryKey: ["adminShopItems"] });
+      queryClient.invalidateQueries({ queryKey: ["allShopItems"] }); // Also invalidate rewards list
+    },
+    onError: (error) => {
+      console.error("Shop item deletion failed:", error);
+      showError(`Failed to delete item: ${error.message}`);
+    },
   });
 
   if (isLoading) {
@@ -117,9 +150,34 @@ const ManageShopPage = () => {
                           <DropdownMenuItem>
                             <Pencil className="h-4 w-4 mr-2" /> Edit
                           </DropdownMenuItem>
-                          <DropdownMenuItem className="text-destructive">
-                            <Trash2 className="h-4 w-4 mr-2" /> Delete
-                          </DropdownMenuItem>
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <DropdownMenuItem 
+                                onSelect={(e) => e.preventDefault()} // Prevent dropdown closing immediately
+                                className="text-destructive focus:text-destructive"
+                              >
+                                <Trash2 className="h-4 w-4 mr-2" /> Delete
+                              </DropdownMenuItem>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  This action will permanently delete the shop item "{item.name}". This cannot be undone.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel disabled={deleteItemMutation.isPending}>Cancel</AlertDialogCancel>
+                                <AlertDialogAction 
+                                  onClick={() => deleteItemMutation.mutate(item.id)}
+                                  disabled={deleteItemMutation.isPending}
+                                  className="bg-destructive hover:bg-destructive/90"
+                                >
+                                  {deleteItemMutation.isPending ? "Deleting..." : "Confirm Delete"}
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </TableCell>
