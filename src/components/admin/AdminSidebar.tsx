@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import {
   Home,
@@ -16,6 +16,7 @@ import {
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
+import { useTheme } from "next-themes";
 
 interface AdminNavItem {
   name: string;
@@ -37,6 +38,18 @@ const adminNavItems: AdminNavItem[] = [
 const AdminSidebar = () => {
   const location = useLocation();
   const currentPath = location.pathname;
+  const { resolvedTheme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const isDarkMode = resolvedTheme === "dark";
+
+  const handleThemeChange = (checked: boolean) => {
+    setTheme(checked ? "dark" : "light");
+  };
 
   return (
     <div className="flex flex-col h-full w-64 bg-sidebar text-sidebar-foreground border-r border-sidebar-border fixed top-0 left-0 z-10">
@@ -80,7 +93,13 @@ const AdminSidebar = () => {
       <div className="p-4 border-t border-sidebar-border space-y-4">
         <div className="flex items-center justify-between">
             <span className="text-sm font-medium">Admin</span>
-            <Switch id="admin-theme-switch" />
+            {mounted && (
+              <Switch
+                id="admin-theme-switch"
+                checked={isDarkMode}
+                onCheckedChange={handleThemeChange}
+              />
+            )}
         </div>
         <Button
           variant="ghost"
