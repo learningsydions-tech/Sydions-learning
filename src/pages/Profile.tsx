@@ -12,7 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Edit, Shield, Trophy, Zap, Save } from "lucide-react";
+import { Edit, Shield, Trophy, Zap, Save, Users } from "lucide-react";
 
 const mockUser = {
   name: "itzkarthik.cyber",
