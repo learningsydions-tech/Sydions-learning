@@ -24,7 +24,7 @@ import ProfilePage from "./pages/Profile";
 import SettingsPage from "./pages/Settings";
 import ShopPage from "./pages/Shop";
 import ChallengesPage from "./pages/Challenges";
-import ChallengeDetailPage from "./pages/ChallengeDetail"; // <-- New Import
+import ChallengeDetailPage from "./pages/ChallengeDetail";
 
 // Admin Layout
 import AdminLayout from "./components/admin/AdminLayout";
@@ -37,6 +37,7 @@ import ManageLevelsPage from "./pages/admin/ManageLevels";
 import ManageGuildLevelsPage from "./pages/admin/ManageGuildLevels";
 import ReportsPage from "./pages/admin/Reports";
 import CreateChallengePage from "./pages/admin/CreateChallenge";
+import EditChallengePage from "./pages/admin/EditChallenge"; // <-- New Import
 import CreateShopItemPage from "./pages/admin/CreateShopItem";
 
 const queryClient = new QueryClient();
@@ -72,7 +73,7 @@ function App() {
                 }
               />
               <Route
-                path="/challenges/:challengeId" // <-- New Route
+                path="/challenges/:challengeId"
                 element={
                   <Layout>
                     <ChallengeDetailPage />
@@ -190,6 +191,14 @@ function App() {
                 element={
                   <AdminLayout>
                     <CreateChallengePage />
+                  </AdminLayout>
+                }
+              />
+              <Route
+                path="/admin/challenges/edit/:challengeId" // <-- New Route
+                element={
+                  <AdminLayout>
+                    <EditChallengePage />
                   </AdminLayout>
                 }
               />
