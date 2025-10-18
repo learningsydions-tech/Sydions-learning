@@ -13,6 +13,7 @@ import GuildsPage from "./pages/Guilds";
 import InventoryPage from "./pages/Inventory";
 import LeaderboardPage from "./pages/Leaderboard";
 import MessagesPage from "./pages/Messages";
+import OnboardingPage from "./pages/Onboarding";
 
 const queryClient = new QueryClient();
 
@@ -31,6 +32,7 @@ const App = () => (
               </Layout>
             }
           />
+          <Route path="/onboarding" element={<OnboardingPage />} />
           <Route
             path="/challenges"
             element={
