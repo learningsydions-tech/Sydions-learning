@@ -187,7 +187,7 @@ function App() {
               element={
                 <AdminLayout>
                   <ManageLevelsPage />
-                </Layout>
+                </AdminLayout>
               }
             />
             <Route
