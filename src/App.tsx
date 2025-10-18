@@ -17,6 +17,7 @@ import OnboardingPage from "./pages/Onboarding";
 import ProfilePage from "./pages/Profile";
 import SettingsPage from "./pages/Settings";
 import ShopPage from "./pages/Shop";
+import UsersPage from "./pages/Users";
 
 const queryClient = new QueryClient();
 
@@ -113,6 +114,14 @@ const App = () => (
             element={
               <Layout>
                 <ShopPage />
+              </Layout>
+            }
+          />
+          <Route
+            path="/users"
+            element={
+              <Layout>
+                <UsersPage />
               </Layout>
             }
           />
