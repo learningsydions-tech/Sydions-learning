@@ -9,7 +9,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Edit, Shield, Trophy, Zap, Users, FolderKanban } from "lucide-react";
+import { Edit, Shield, Trophy, Zap, Users, FolderKanban, Award } from "lucide-react";
 
 const mockUser = {
   name: "itzkarthik.cyber",
@@ -48,8 +48,9 @@ const ProfilePage = () => {
 
       {/* Tabs */}
       <Tabs defaultValue="overview">
-        <TabsList className="grid w-full grid-cols-2">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="achievements">Achievements</TabsTrigger>
           <TabsTrigger value="projects">Projects</TabsTrigger>
         </TabsList>
 
@@ -93,6 +94,23 @@ const ProfilePage = () => {
               </CardContent>
             </Card>
           </div>
+        </TabsContent>
+
+        {/* Achievements Tab */}
+        <TabsContent value="achievements" className="mt-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Achievements</CardTitle>
+              <CardDescription>Badges and awards you've earned.</CardDescription>
+            </CardHeader>
+            <CardContent className="py-20 flex flex-col items-center justify-center text-center">
+              <Award className="w-16 h-16 text-muted-foreground mb-4" />
+              <h3 className="text-xl font-semibold">No achievements yet</h3>
+              <p className="text-muted-foreground mt-2">
+                Complete challenges to earn achievements.
+              </p>
+            </CardContent>
+          </Card>
         </TabsContent>
 
         {/* Projects Tab */}
