@@ -15,6 +15,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { showError } from "@/utils/toast";
 import { format } from "date-fns";
+import { Link } from "react-router-dom"; // <-- Missing import added
 
 interface Profile {
   id: string;
