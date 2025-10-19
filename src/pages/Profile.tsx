@@ -9,7 +9,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Edit, Shield, Trophy, Zap, Users, FolderKanban, Award, ExternalLink } from "lucide-react";
+import { Edit, Shield, Trophy, Zap, Users, FolderKanban, Award, ExternalLink, Crown } from "lucide-react";
 import { useSession } from "@/contexts/SessionContext";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -36,6 +36,7 @@ interface Profile {
   last_name: string | null;
   avatar_url: string | null;
   updated_at: string | null;
+  is_admin: boolean; // New field
   // Combined fields
   name: string;
   rank: string;
@@ -55,6 +56,7 @@ const fetchProfile = async (userId: string): Promise<Profile> => {
       last_name, 
       avatar_url, 
       updated_at,
+      is_admin,
       user_stats (xp, challenges_completed),
       guild_members (guilds (name))
     `)
@@ -130,6 +132,7 @@ const ProfilePage = () => {
   const displayName = profile?.name || userEmail || "Guest";
   const displayAvatar = profile?.avatar_url || "/placeholder.svg";
   const submittedChallenges = profile?.submittedChallenges || [];
+  const isAdmin = profile?.is_admin;
 
   return (
     <div className="space-y-8">
@@ -143,7 +146,15 @@ const ProfilePage = () => {
               <AvatarFallback>{displayName.slice(0, 2).toUpperCase()}</AvatarFallback>
             </Avatar>
             <div className="ml-4">
-              <h1 className="text-2xl font-bold">{displayName}</h1>
+              <h1 className="text-2xl font-bold flex items-center gap-2">
+                {displayName}
+                {isAdmin && (
+                  <Badge className="bg-primary text-primary-foreground flex items-center gap-1">
+                    <Crown className="w-3 h-3 fill-white" />
+                    Admin
+                  </Badge>
+                )}
+              </h1>
               <p className="text-sm text-muted-foreground">{joinDate}</p>
             </div>
             <Button variant="outline" size="sm" className="ml-auto" asChild>
