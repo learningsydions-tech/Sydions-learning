@@ -1,9 +1,10 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Home, Grid, Compass, MessageSquare, ShoppingBag, Box, User, Users, Shield, Trophy, Settings, LogOut, LucideIcon, Calendar } from "lucide-react";
+import { Home, Grid, Compass, MessageSquare, ShoppingBag, Box, User, Users, Shield, Trophy, Settings, LogOut, LucideIcon, Calendar, Menu } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { useSession } from "@/contexts/SessionContext";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"; // Import Sheet components
 
 interface NavItem {
   name: string;
@@ -27,6 +28,55 @@ const baseNavItems: NavItem[] = [
   { name: "Settings", icon: Settings, href: "/settings" },
 ];
 
+const NavContent = ({ navItems, currentPath, handleSignOut, session, isAdmin }: { navItems: NavItem[], currentPath: string, handleSignOut: () => void, session: any, isAdmin: boolean }) => (
+  <>
+    {/* Logo */}
+    <div className="p-4 border-b border-sidebar-border h-16 flex items-center">
+      <h1 className="text-xl font-bold text-sidebar-primary">
+        Sydions - Learning
+      </h1>
+    </div>
+
+    {/* Navigation Links */}
+    <nav className="flex-grow p-2 space-y-1 overflow-y-auto no-scrollbar">
+      {navItems.map((item) => {
+        const isActive = currentPath === item.href;
+        const Icon = item.icon;
+        return (
+          <Link
+            key={item.name}
+            to={item.href}
+            className={cn(
+              "flex items-center p-3 rounded-lg transition-colors text-sm font-medium",
+              isActive
+                ? "bg-sidebar-accent text-sidebar-foreground"
+                : "text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-foreground",
+            )}
+          >
+            <Icon className="w-5 h-5 mr-3" />
+            {item.name}
+          </Link>
+        );
+      })}
+    </nav>
+
+    {/* Footer/User Info */}
+    <div className="p-4 border-t border-sidebar-border">
+      <p className="text-sm text-muted-foreground mb-3 truncate">
+        {session?.user?.email}
+      </p>
+      <Button
+        variant="ghost"
+        className="w-full justify-start text-sm text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-foreground"
+        onClick={handleSignOut}
+      >
+        <LogOut className="w-4 h-4 mr-2" />
+        Sign out
+      </Button>
+    </div>
+  </>
+);
+
 const Sidebar = () => {
   const location = useLocation();
   const currentPath = location.pathname;
@@ -39,52 +89,39 @@ const Sidebar = () => {
   };
 
   return (
-    <div className="flex flex-col h-full w-64 bg-sidebar text-sidebar-foreground border-r border-sidebar-border fixed top-0 left-0 z-10">
-      {/* Logo */}
-      <div className="p-4 border-b border-sidebar-border h-16 flex items-center">
-        <h1 className="text-xl font-bold text-sidebar-primary">
-          Sydions - Learning
-        </h1>
+    <>
+      {/* Desktop Sidebar */}
+      <div className="hidden lg:flex flex-col h-screen w-64 bg-sidebar text-sidebar-foreground border-r border-sidebar-border fixed top-0 left-0 z-10">
+        <NavContent 
+          navItems={navItems} 
+          currentPath={currentPath} 
+          handleSignOut={handleSignOut} 
+          session={session} 
+          isAdmin={isAdmin} 
+        />
       </div>
-
-      {/* Navigation Links */}
-      <nav className="flex-grow p-2 space-y-1 overflow-y-auto no-scrollbar">
-        {navItems.map((item) => {
-          const isActive = currentPath === item.href;
-          const Icon = item.icon;
-          return (
-            <Link
-              key={item.name}
-              to={item.href}
-              className={cn(
-                "flex items-center p-3 rounded-lg transition-colors text-sm font-medium",
-                isActive
-                  ? "bg-sidebar-accent text-sidebar-foreground"
-                  : "text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-foreground",
-              )}
-            >
-              <Icon className="w-5 h-5 mr-3" />
-              {item.name}
-            </Link>
-          );
-        })}
-      </nav>
-
-      {/* Footer/User Info */}
-      <div className="p-4 border-t border-sidebar-border">
-        <p className="text-sm text-muted-foreground mb-3 truncate">
-          {session?.user?.email}
-        </p>
-        <Button
-          variant="ghost"
-          className="w-full justify-start text-sm text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-foreground"
-          onClick={handleSignOut}
-        >
-          <LogOut className="w-4 h-4 mr-2" />
-          Sign out
-        </Button>
-      </div>
-    </div>
+      
+      {/* Mobile Header and Sheet */}
+      <header className="lg:hidden sticky top-0 z-20 w-full bg-background/90 backdrop-blur-sm border-b border-border/50 h-16 flex items-center px-4 justify-between">
+        <h1 className="text-xl font-bold text-sidebar-primary">Sydions</h1>
+        <Sheet>
+          <SheetTrigger asChild>
+            <Button variant="outline" size="icon">
+              <Menu className="h-6 w-6" />
+            </Button>
+          </SheetTrigger>
+          <SheetContent side="left" className="p-0 w-64 flex flex-col">
+            <NavContent 
+              navItems={navItems} 
+              currentPath={currentPath} 
+              handleSignOut={handleSignOut} 
+              session={session} 
+              isAdmin={isAdmin} 
+            />
+          </SheetContent>
+        </Sheet>
+      </header>
+    </>
   );
 };
 
