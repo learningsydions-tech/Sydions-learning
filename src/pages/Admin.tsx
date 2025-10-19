@@ -1,16 +1,25 @@
 import React from "react";
-import { Users, ClipboardList, DollarSign, Activity } from "lucide-react";
+import { Users, ClipboardList, Activity, PlusCircle } from "lucide-react";
 import StatCard from "@/components/StatCard";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { showError } from "@/utils/toast";
+import { formatDistanceToNow } from "date-fns";
 
 interface AdminStats {
   totalUsers: number;
   activeChallenges: number;
   totalGuilds: number;
+  totalChallengesCreated: number;
+}
+
+interface ActivityItem {
+  user: string;
+  action: string;
+  time: string;
+  created_at: string;
 }
 
 const fetchAdminStats = async (): Promise<AdminStats> => {
@@ -22,12 +31,12 @@ const fetchAdminStats = async (): Promise<AdminStats> => {
   if (userError) console.error("Error fetching user count:", userError);
 
   // 2. Active Challenges (Count challenges where status = 'active')
-  const { count: activeChallenges, error: challengeError } = await supabase
+  const { count: activeChallenges, error: activeChallengeError } = await supabase
     .from("challenges")
     .select("*", { count: 'exact', head: true })
     .eq("status", "active");
 
-  if (challengeError) console.error("Error fetching active challenge count:", challengeError);
+  if (activeChallengeError) console.error("Error fetching active challenge count:", activeChallengeError);
   
   // 3. Total Guilds (Count guilds)
   const { count: totalGuilds, error: guildError } = await supabase
@@ -35,18 +44,88 @@ const fetchAdminStats = async (): Promise<AdminStats> => {
     .select("*", { count: 'exact', head: true });
 
   if (guildError) console.error("Error fetching guild count:", guildError);
+  
+  // 4. Total Challenges Created (Count all challenges)
+  const { count: totalChallengesCreated, error: totalChallengeError } = await supabase
+    .from("challenges")
+    .select("*", { count: 'exact', head: true });
+
+  if (totalChallengeError) console.error("Error fetching total challenge count:", totalChallengeError);
+
 
   return {
     totalUsers: totalUsers || 0,
     activeChallenges: activeChallenges || 0,
     totalGuilds: totalGuilds || 0,
+    totalChallengesCreated: totalChallengesCreated || 0,
   };
 };
 
+const fetchRecentActivity = async (): Promise<ActivityItem[]> => {
+  // Fetch recent challenge creations (limit 5)
+  const { data: challenges, error: challengeError } = await supabase
+    .from("challenges")
+    .select(`
+      title, 
+      created_at, 
+      profiles (first_name, last_name)
+    `)
+    .order("created_at", { ascending: false })
+    .limit(5);
+
+  if (challengeError) console.error("Error fetching recent challenges:", challengeError);
+
+  const challengeActivities: ActivityItem[] = (challenges || []).map(c => {
+    const creatorName = [c.profiles?.first_name, c.profiles?.last_name].filter(Boolean).join(" ") || "Unknown User";
+    return {
+      user: creatorName,
+      action: `Created new challenge: '${c.title}'`,
+      created_at: c.created_at,
+      time: formatDistanceToNow(new Date(c.created_at), { addSuffix: true }),
+    };
+  });
+
+  // Fetch recent guild joins (limit 5)
+  const { data: joins, error: joinError } = await supabase
+    .from("guild_members")
+    .select(`
+      joined_at,
+      profiles (first_name, last_name),
+      guilds (name)
+    `)
+    .order("joined_at", { ascending: false })
+    .limit(5);
+
+  if (joinError) console.error("Error fetching recent guild joins:", joinError);
+
+  const joinActivities: ActivityItem[] = (joins || []).map(j => {
+    const userName = [j.profiles?.first_name, j.profiles?.last_name].filter(Boolean).join(" ") || "Unknown User";
+    const guildName = j.guilds?.name || "an unknown guild";
+    return {
+      user: userName,
+      action: `Joined guild: '${guildName}'`,
+      created_at: j.joined_at,
+      time: formatDistanceToNow(new Date(j.joined_at), { addSuffix: true }),
+    };
+  });
+
+  // Combine and sort activities by creation time
+  const combinedActivities = [...challengeActivities, ...joinActivities]
+    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+    .slice(0, 5); // Show top 5 recent activities
+
+  return combinedActivities;
+};
+
 const AdminPage = () => {
-  const { data: statsData, isLoading, error } = useQuery<AdminStats>({
+  const { data: statsData, isLoading: isStatsLoading, error: statsError } = useQuery<AdminStats>({
     queryKey: ["adminStats"],
     queryFn: fetchAdminStats,
+  });
+  
+  const { data: recentActivities, isLoading: isActivityLoading, error: activityError } = useQuery<ActivityItem[]>({
+    queryKey: ["recentActivity"],
+    queryFn: fetchRecentActivity,
   });
 
   const stats = [
@@ -69,22 +148,15 @@ const AdminPage = () => {
       color: "bg-indigo-600/20 text-indigo-600",
     },
     {
-      title: "Total Revenue (Mock)",
-      value: "$12,450",
-      icon: DollarSign,
+      title: "Challenges Created",
+      value: statsData?.totalChallengesCreated.toLocaleString() || "...",
+      icon: PlusCircle,
       color: "bg-amber-600/20 text-amber-600",
     },
   ];
 
-  const recentActivities = [
-    { user: "CyberNinja", action: "Submitted to 'SQL Injection'", time: "5m ago" },
-    { user: "CodeWizard", action: "Joined 'Code Wizards' guild", time: "1h ago" },
-    { user: "PixelPerfect", action: "Purchased 'Cyber Samurai Frame'", time: "3h ago" },
-    { user: "DataDynamo", action: "Created new challenge 'Data Hackathon'", time: "8h ago" },
-  ];
-
-  if (error) {
-    showError("Failed to load admin stats.");
+  if (statsError || activityError) {
+    showError("Failed to load admin data.");
   }
 
   return (
@@ -103,7 +175,7 @@ const AdminPage = () => {
           <StatCard
             key={stat.title}
             title={stat.title}
-            value={isLoading ? "..." : stat.value}
+            value={isStatsLoading ? "..." : stat.value}
             icon={stat.icon}
             iconColorClass={stat.color}
           />
@@ -113,28 +185,34 @@ const AdminPage = () => {
       {/* Recent Activity Section */}
       <Card>
         <CardHeader>
-          <CardTitle>Recent Activity (Mock)</CardTitle>
+          <CardTitle>Recent Activity</CardTitle>
           <CardDescription>A log of recent user activities on the platform.</CardDescription>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>User</TableHead>
-                <TableHead>Action</TableHead>
-                <TableHead className="text-right">Time</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {recentActivities.map((activity, index) => (
-                <TableRow key={index}>
-                  <TableCell className="font-medium">{activity.user}</TableCell>
-                  <TableCell>{activity.action}</TableCell>
-                  <TableCell className="text-right text-muted-foreground">{activity.time}</TableCell>
+          {isActivityLoading ? (
+            <div className="text-center py-4 text-muted-foreground">Loading activity...</div>
+          ) : recentActivities && recentActivities.length > 0 ? (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>User</TableHead>
+                  <TableHead>Action</TableHead>
+                  <TableHead className="text-right">Time</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {recentActivities.map((activity, index) => (
+                  <TableRow key={index}>
+                    <TableCell className="font-medium">{activity.user}</TableCell>
+                    <TableCell>{activity.action}</TableCell>
+                    <TableCell className="text-right text-muted-foreground">{activity.time}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          ) : (
+            <div className="text-center py-12 text-muted-foreground">No recent activity found.</div>
+          )}
         </CardContent>
       </Card>
     </div>
