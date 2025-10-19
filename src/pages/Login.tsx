@@ -1,8 +1,10 @@
 import { Auth } from '@supabase/auth-ui-react'
 import { ThemeSupa } from '@supabase/auth-ui-shared'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 import { useEffect } from 'react'
 import { useSession } from '@/contexts/SessionContext'
+import { Button } from '@/components/ui/button'
+import { ArrowLeft } from 'lucide-react'
 
 const LoginPage = () => {
   const { session, supabase } = useSession();
@@ -17,6 +19,12 @@ const LoginPage = () => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <div className="w-full max-w-md p-8 space-y-8 bg-card rounded-lg shadow-lg">
+        <Button variant="link" className="p-0 h-auto text-muted-foreground hover:text-foreground" asChild>
+          <Link to="/">
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back to Home
+          </Link>
+        </Button>
         <div>
           <h1 className="text-2xl font-bold text-center text-primary">
             Welcome to Sydions
