@@ -37,8 +37,9 @@ import ManageLevelsPage from "./pages/admin/ManageLevels";
 import ManageGuildLevelsPage from "./pages/admin/ManageGuildLevels";
 import ReportsPage from "./pages/admin/Reports";
 import CreateChallengePage from "./pages/admin/CreateChallenge";
-import EditChallengePage from "./pages/admin/EditChallenge"; // <-- New Import
+import EditChallengePage from "./pages/admin/EditChallenge";
 import CreateShopItemPage from "./pages/admin/CreateShopItem";
+import EditShopItemPage from "./pages/admin/EditShopItem"; // <-- New Import
 
 const queryClient = new QueryClient();
 
@@ -195,7 +196,7 @@ function App() {
                 }
               />
               <Route
-                path="/admin/challenges/edit/:challengeId" // <-- New Route
+                path="/admin/challenges/edit/:challengeId"
                 element={
                   <AdminLayout>
                     <EditChallengePage />
@@ -223,6 +224,14 @@ function App() {
                 element={
                   <AdminLayout>
                     <CreateShopItemPage />
+                  </AdminLayout>
+                }
+              />
+              <Route
+                path="/admin/shop/edit/:itemId" // <-- New Route
+                element={
+                  <AdminLayout>
+                    <EditShopItemPage />
                   </AdminLayout>
                 }
               />

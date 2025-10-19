@@ -147,8 +147,10 @@ const ManageShopPage = () => {
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                           <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                          <DropdownMenuItem>
-                            <Pencil className="h-4 w-4 mr-2" /> Edit
+                          <DropdownMenuItem asChild>
+                            <Link to={`/admin/shop/edit/${item.id}`}>
+                              <Pencil className="h-4 w-4 mr-2" /> Edit
+                            </Link>
                           </DropdownMenuItem>
                           <AlertDialog>
                             <AlertDialogTrigger asChild>
