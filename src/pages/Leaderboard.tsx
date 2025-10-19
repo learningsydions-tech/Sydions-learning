@@ -41,12 +41,12 @@ interface RawLeaderboardData {
     first_name: string | null;
     last_name: string | null;
     avatar_url: string | null;
-    guild_members: { guilds: { name: string } | null }[];
+    // Removed guild_members for testing
   } | null;
 }
 
 const fetchGlobalLeaderboard = async (currentUserId: string | undefined): Promise<LeaderboardUser[]> => {
-  // Query user_stats directly and join profiles and guild_members
+  // Query user_stats directly and join profiles
   const { data, error } = await supabase
     .from("user_stats")
     .select(`
@@ -56,8 +56,7 @@ const fetchGlobalLeaderboard = async (currentUserId: string | undefined): Promis
       profiles (
         first_name, 
         last_name, 
-        avatar_url,
-        guild_members (guilds (name))
+        avatar_url
       )
     `)
     .order("xp", { ascending: false }) // Order directly by XP in user_stats
@@ -72,9 +71,8 @@ const fetchGlobalLeaderboard = async (currentUserId: string | undefined): Promis
     const profile = stat.profiles;
     const fullName = [profile?.first_name, profile?.last_name].filter(Boolean).join(" ") || "Unknown User";
     
-    const guildName = profile?.guild_members && profile.guild_members.length > 0 
-      ? (profile.guild_members[0].guilds as { name: string } | null)?.name || "None"
-      : "None";
+    // Mock guild name since we removed the join
+    const guildName = "None"; 
 
     return {
       rank: index + 1,
