@@ -41,12 +41,16 @@ const CreateChallengePage = () => {
   const [difficulty, setDifficulty] = useState("beginner");
   const [deadline, setDeadline] = useState<Date | undefined>();
   const [maxPoints, setMaxPoints] = useState(100);
+  const [participationRewardCoins, setParticipationRewardCoins] = useState(0);
+  const [completionRewardCoins, setCompletionRewardCoins] = useState(0);
 
   const createChallengeMutation = useMutation({
     mutationFn: async () => {
       if (!session?.user.id) throw new Error("User not authenticated.");
       if (!title.trim()) throw new Error("Challenge title is required.");
       if (maxPoints <= 0) throw new Error("Max points must be positive.");
+      if (participationRewardCoins < 0) throw new Error("Participation reward cannot be negative.");
+      if (completionRewardCoins < 0) throw new Error("Completion reward cannot be negative.");
 
       const { data, error } = await supabase
         .from("challenges")
@@ -57,6 +61,8 @@ const CreateChallengePage = () => {
           difficulty: difficulty,
           deadline: deadline ? deadline.toISOString() : null,
           max_points: maxPoints,
+          participation_reward_coins: participationRewardCoins,
+          completion_reward_coins: completionRewardCoins,
           created_by: session.user.id,
           status: 'draft', // Default status for new challenges
         })
@@ -185,7 +191,7 @@ const CreateChallengePage = () => {
                   </Popover>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="points">Max Points</Label>
+                  <Label htmlFor="points">Max Points (XP)</Label>
                   <Input 
                     id="points" 
                     type="number" 
@@ -194,6 +200,34 @@ const CreateChallengePage = () => {
                     onChange={(e) => setMaxPoints(parseInt(e.target.value) || 0)}
                     required
                     min={1}
+                    disabled={isPending}
+                  />
+                </div>
+              </div>
+              
+              {/* New Reward Fields */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <Label htmlFor="participation-reward">Participation Reward (Coins)</Label>
+                  <Input 
+                    id="participation-reward" 
+                    type="number" 
+                    placeholder="0" 
+                    value={participationRewardCoins}
+                    onChange={(e) => setParticipationRewardCoins(parseInt(e.target.value) || 0)}
+                    min={0}
+                    disabled={isPending}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="completion-reward">Completion Reward (Coins)</Label>
+                  <Input 
+                    id="completion-reward" 
+                    type="number" 
+                    placeholder="0" 
+                    value={completionRewardCoins}
+                    onChange={(e) => setCompletionRewardCoins(parseInt(e.target.value) || 0)}
+                    min={0}
                     disabled={isPending}
                   />
                 </div>
