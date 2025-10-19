@@ -16,6 +16,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { showError, showSuccess } from "@/utils/toast";
 import { Coins, Clock } from "lucide-react";
 import { format } from "date-fns";
+import { useSession } from "@/contexts/SessionContext";
 
 interface JoinChallengeButtonProps {
   challengeId: string;
@@ -107,7 +108,7 @@ const JoinChallengeButton: React.FC<JoinChallengeButtonProps> = ({
                 <p className="text-sm font-medium">Instant Reward: {participationRewardCoins} Coins</p>
             </div>
           </AlertDialogDescription>
-        </CardHeader>
+        </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel disabled={isPending}>Cancel</AlertDialogCancel>
           <AlertDialogAction onClick={() => joinMutation.mutate()} disabled={isPending}>
