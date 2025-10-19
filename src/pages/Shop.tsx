@@ -1,11 +1,12 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Coins, User, Shield } from "lucide-react";
+import { Coins, User, Shield, Loader2 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { showError } from "@/utils/toast";
 import ShopItemCard from "@/components/ShopItemCard";
+import { useSession } from "@/contexts/SessionContext";
 
 interface ShopItem {
   id: string;
@@ -15,6 +16,10 @@ interface ShopItem {
   image_url: string;
   rarity: "Common" | "Rare" | "Epic" | "Legendary";
   is_for_guild_store: boolean;
+}
+
+interface UserStats {
+  coins: number;
 }
 
 const fetchShopItems = async (): Promise<ShopItem[]> => {
@@ -32,23 +37,46 @@ const fetchShopItems = async (): Promise<ShopItem[]> => {
   return data as ShopItem[];
 };
 
-const ShopPage = () => {
-  const userBalance = 1250; // Mock user balance for display
+const fetchUserCoins = async (userId: string): Promise<number> => {
+  const { data, error } = await supabase
+    .from("user_stats")
+    .select("coins")
+    .eq("user_id", userId)
+    .single();
+
+  if (error && error.code !== 'PGRST116') { // PGRST116 means 'No rows found'
+    showError("Failed to load user balance.");
+    throw error;
+  }
   
-  const { data: shopItems, isLoading, error } = useQuery<ShopItem[]>({
+  // If no stats found (new user), default to 0
+  return data?.coins || 0;
+};
+
+const ShopPage = () => {
+  const { session, loading: sessionLoading } = useSession();
+  const userId = session?.user?.id;
+  
+  const { data: shopItems, isLoading: isItemsLoading, error: itemsError } = useQuery<ShopItem[]>({
     queryKey: ["shopItems"],
     queryFn: fetchShopItems,
+  });
+  
+  const { data: userBalance, isLoading: isBalanceLoading, error: balanceError } = useQuery<number>({
+    queryKey: ["userCoins", userId],
+    queryFn: () => fetchUserCoins(userId!),
+    enabled: !!userId && !sessionLoading,
   });
 
   const personalItems = shopItems?.filter(item => !item.is_for_guild_store) || [];
   const guildItems = shopItems?.filter(item => item.is_for_guild_store) || [];
 
-  if (isLoading) {
-    return <div className="text-center py-12 text-muted-foreground">Loading shop...</div>;
+  if (sessionLoading || isItemsLoading || isBalanceLoading) {
+    return <div className="text-center py-12 text-muted-foreground flex flex-col items-center"><Loader2 className="w-8 h-8 animate-spin mb-4" /> Loading shop...</div>;
   }
 
-  if (error) {
-    return <div className="text-center py-12 text-destructive">Error loading shop: {error.message}</div>;
+  if (itemsError || balanceError) {
+    return <div className="text-center py-12 text-destructive">Error loading shop data: {(itemsError || balanceError)?.message}</div>;
   }
 
   return (
@@ -63,7 +91,7 @@ const ShopPage = () => {
         </div>
         <Button className="bg-amber-400 text-amber-900 hover:bg-amber-500 dark:bg-amber-500 dark:text-amber-900 dark:hover:bg-amber-600">
           <Coins className="w-4 h-4 mr-2" />
-          {userBalance.toLocaleString()} Coins
+          {userBalance?.toLocaleString() || 0} Coins
         </Button>
       </div>
 
