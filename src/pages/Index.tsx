@@ -2,10 +2,10 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowRight, Users, Zap, ClipboardList, Loader2, Shield, Trophy } from "lucide-react";
+import { ArrowRight, Users, Zap, ClipboardList, Loader2, Code, Shield, Trophy, MessageSquare } from "lucide-react";
 import { usePublicStats } from "@/hooks/use-public-stats";
 import { Badge } from "@/components/ui/badge";
-import { cn } from "@/lib/utils";
+import Header from "@/components/Header"; // Import the new Header
 
 // Component for displaying a single statistic
 interface StatDisplayProps {
@@ -32,17 +32,25 @@ const IndexPage = () => {
     { icon: <ClipboardList className="w-8 h-8" />, value: stats?.totalChallenges.toLocaleString() || 0, label: "Total Challenges" },
     { icon: <Zap className="w-8 h-8" />, value: stats?.activeChallenges.toLocaleString() || 0, label: "Active Challenges" },
   ];
+  
+  const features = [
+    { icon: <Code className="w-8 h-8 text-primary" />, title: "Real-World Challenges", description: "Tackle projects that mirror industry demands in development, security, and design." },
+    { icon: <Shield className="w-8 h-8 text-primary" />, title: "Guild Collaboration", description: "Join or create guilds to collaborate, share knowledge, and compete as a team." },
+    { icon: <Trophy className="w-8 h-8 text-primary" />, title: "XP & Leaderboards", description: "Earn experience points, level up your profile, and climb the global rankings." },
+    { icon: <MessageSquare className="w-8 h-8 text-primary" />, title: "Peer Review System", description: "Improve your skills by reviewing and rating submissions from other community members." },
+  ];
 
   return (
-    <div className="min-h-screen pt-16 pb-20 bg-background">
+    <div className="min-h-screen bg-background">
+      <Header /> {/* New Header Component */}
       <div className="container mx-auto px-4">
         
         {/* Hero Section */}
-        <section className="text-center py-20 md:py-32 space-y-6">
-          <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-primary to-accent animate-pulse-colorful">
+        <section className="text-center pt-32 pb-20 md:pt-48 md:pb-32 space-y-8">
+          <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-primary to-accent">
             Sydions: Master Your Craft
           </h1>
-          <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
+          <p className="text-xl text-muted-foreground max-w-4xl mx-auto">
             Join a global community of developers, designers, and security experts. Tackle real-world challenges, earn XP, and climb the leaderboard.
           </p>
           <div className="flex justify-center gap-4 pt-4">
@@ -68,6 +76,20 @@ const IndexPage = () => {
               ))}
             </div>
           )}
+        </section>
+        
+        {/* Features/Why Join Us Section */}
+        <section className="py-20">
+            <h2 className="text-4xl font-bold text-center mb-12">Why Join Sydions?</h2>
+            <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
+                {features.map((feature, index) => (
+                    <Card key={index} className="p-6 text-center hover:shadow-lg transition-shadow">
+                        <div className="flex justify-center mb-4">{feature.icon}</div>
+                        <CardTitle className="text-lg mb-2">{feature.title}</CardTitle>
+                        <p className="text-sm text-muted-foreground">{feature.description}</p>
+                    </Card>
+                ))}
+            </div>
         </section>
 
         {/* Latest Challenges Section */}
@@ -114,6 +136,26 @@ const IndexPage = () => {
             </div>
           )}
         </section>
+        
+        {/* Call to Action Footer */}
+        <section className="py-20 text-center">
+            <Card className="p-10 bg-gradient-primary text-white">
+                <h2 className="text-4xl font-bold mb-4">Ready to Level Up?</h2>
+                <p className="text-lg mb-8 opacity-90">
+                    Join thousands of learners and start building your portfolio today.
+                </p>
+                <Button size="lg" variant="secondary" asChild>
+                    <Link to="/login">
+                        Sign Up Now <ArrowRight className="w-4 h-4 ml-2" />
+                    </Link>
+                </Button>
+            </Card>
+        </section>
+        
+        {/* Footer Placeholder */}
+        <footer className="py-8 text-center text-sm text-muted-foreground border-t mt-8">
+            © {new Date().getFullYear()} Sydions. All rights reserved.
+        </footer>
       </div>
     </div>
   );
