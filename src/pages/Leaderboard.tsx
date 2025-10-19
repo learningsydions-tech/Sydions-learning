@@ -53,6 +53,7 @@ const fetchGlobalLeaderboard = async (currentUserId: string | undefined): Promis
       user_stats (xp, challenges_completed),
       guild_members (guilds (name))
     `)
+    // FIX: Use the full path for ordering by foreign table column
     .order("xp", { ascending: false, foreignTable: "user_stats" })
     .limit(10);
 
