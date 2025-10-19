@@ -13,8 +13,15 @@ import { Label } from "@/components/ui/label";
 import { Save, Bell, Brush, Lock } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import ProfileSettingsForm from "@/components/ProfileSettingsForm";
+import { showSuccess } from "@/utils/toast";
 
 const SettingsPage = () => {
+  const handlePasswordUpdate = (e: React.FormEvent) => {
+    e.preventDefault();
+    // Mock password update logic
+    showSuccess("Password update simulated. Feature coming soon!");
+  };
+
   return (
     <div className="space-y-8">
       <div>
@@ -57,22 +64,24 @@ const SettingsPage = () => {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-              <div className="space-y-2">
-                <Label htmlFor="current-password">Current Password</Label>
-                <Input id="current-password" type="password" />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="new-password">New Password</Label>
-                <Input id="new-password" type="password" />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="confirm-password">Confirm New Password</Label>
-                <Input id="confirm-password" type="password" />
-              </div>
-              <Button>
-                <Lock className="w-4 h-4 mr-2" />
-                Update Password
-              </Button>
+              <form onSubmit={handlePasswordUpdate} className="space-y-6">
+                <div className="space-y-2">
+                  <Label htmlFor="current-password">Current Password</Label>
+                  <Input id="current-password" type="password" />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="new-password">New Password</Label>
+                  <Input id="new-password" type="password" />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="confirm-password">Confirm New Password</Label>
+                  <Input id="confirm-password" type="password" />
+                </div>
+                <Button type="submit">
+                  <Lock className="w-4 h-4 mr-2" />
+                  Update Password
+                </Button>
+              </form>
             </CardContent>
           </Card>
         </TabsContent>

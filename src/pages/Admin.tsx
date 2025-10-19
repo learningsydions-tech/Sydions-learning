@@ -128,28 +128,34 @@ const AdminPage = () => {
     queryFn: fetchRecentActivity,
   });
 
+  // Use optional chaining and nullish coalescing to safely access statsData
+  const totalUsers = statsData?.totalUsers || 0;
+  const activeChallenges = statsData?.activeChallenges || 0;
+  const totalGuilds = statsData?.totalGuilds || 0;
+  const totalChallengesCreated = statsData?.totalChallengesCreated || 0;
+
   const stats = [
     {
       title: "Total Users",
-      value: statsData?.totalUsers.toLocaleString() || "...",
+      value: totalUsers.toLocaleString(),
       icon: Users,
       color: "bg-blue-600/20 text-blue-600",
     },
     {
       title: "Active Challenges",
-      value: statsData?.activeChallenges.toLocaleString() || "...",
+      value: activeChallenges.toLocaleString(),
       icon: Activity,
       color: "bg-green-600/20 text-green-600",
     },
     {
       title: "Total Guilds",
-      value: statsData?.totalGuilds.toLocaleString() || "...",
+      value: totalGuilds.toLocaleString(),
       icon: ClipboardList,
       color: "bg-indigo-600/20 text-indigo-600",
     },
     {
       title: "Challenges Created",
-      value: statsData?.totalChallengesCreated.toLocaleString() || "...",
+      value: totalChallengesCreated.toLocaleString(),
       icon: PlusCircle,
       color: "bg-amber-600/20 text-amber-600",
     },
