@@ -37,12 +37,12 @@ const fetchActiveChallenges = async (userId: string | undefined): Promise<Challe
       difficulty, 
       max_points, 
       deadline,
-      user_challenges!inner (status)
+      user_challenges:user_challenges!left (status)
     `)
     .eq("status", "active")
     .limit(20);
     
-  // If user is logged in, join their challenge status
+  // If user is logged in, filter the joined user_challenges table to only include the current user's status
   if (userId) {
     query = supabase
       .from("challenges")
@@ -54,10 +54,10 @@ const fetchActiveChallenges = async (userId: string | undefined): Promise<Challe
         difficulty, 
         max_points, 
         deadline,
-        user_challenges!left (status, user_id)
+        user_challenges:user_challenges!left (status, user_id)
       `)
       .eq("status", "active")
-      .or(`user_challenges.user_id.eq.${userId},user_challenges.user_id.is.null`)
+      .filter('user_challenges.user_id', 'eq', userId) // Filter the joined table by user_id
       .limit(20);
   }
 
