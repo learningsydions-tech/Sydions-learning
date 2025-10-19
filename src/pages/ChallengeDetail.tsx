@@ -2,15 +2,17 @@ import React, { useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, Zap, Shield, Clock, Send, Loader2 } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ArrowLeft, Zap, Shield, Clock, Send, Loader2, Coins, Users } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { showError, showSuccess } from "@/utils/toast";
-import { format } from "date-fns";
+import { format, isAfter, addHours } from "date-fns";
 import JoinChallengeButton from "@/components/JoinChallengeButton";
 import { useSession } from "@/contexts/SessionContext";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import ChallengeSubmissionsTab from "@/components/ChallengeSubmissionsTab";
 
 interface ChallengeDetail {
   id: string;
@@ -138,7 +140,12 @@ const ChallengeDetailPage = () => {
   const hasJoined = !!userStatus;
   const hasSubmitted = userStatus?.status === 'submitted';
   const isSubmitting = submitMutation.isPending;
-
+  
+  // Logic to determine if the review phase is active
+  const deadlineDate = challenge.deadline ? new Date(challenge.deadline) : null;
+  const reviewPhaseStarts = deadlineDate ? addHours(deadlineDate, 24) : null;
+  const isReviewPhaseActive = reviewPhaseStarts ? isAfter(new Date(), reviewPhaseStarts) : false;
+  
   const renderActionSection = () => {
     if (!hasJoined) {
       return (
@@ -233,9 +240,49 @@ const ChallengeDetailPage = () => {
           <h3 className="text-xl font-semibold mt-4">Description</h3>
           <p className="text-muted-foreground whitespace-pre-wrap">{challenge.description}</p>
 
-          {renderActionSection()}
+          {/* Action Section (Join/Submit) */}
+          {!isReviewPhaseActive && renderActionSection()}
+          
+          {/* Review Phase Status */}
+          {isReviewPhaseActive && (
+            <div className="p-4 bg-info/10 border border-info/30 rounded-lg text-info-foreground">
+              <p className="font-semibold flex items-center">
+                <Users className="w-4 h-4 mr-2" />
+                Community Review Phase is Active
+              </p>
+              <p className="text-sm mt-1">The submission deadline has passed. You can now review and rate other projects.</p>
+            </div>
+          )}
         </CardContent>
       </Card>
+      
+      {/* Tabs for Overview and Submissions */}
+      <Tabs defaultValue="overview">
+        <TabsList className={`grid w-full grid-cols-${isReviewPhaseActive ? 2 : 1}`}>
+          <TabsTrigger value="overview">Overview</TabsTrigger>
+          {isReviewPhaseActive && <TabsTrigger value="submissions">Submissions & Review</TabsTrigger>}
+        </TabsList>
+        
+        <TabsContent value="overview" className="mt-6">
+          {/* Overview content is already displayed above the tabs */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Challenge Details</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-muted-foreground">
+                This section can hold additional details, resources, or discussion forums.
+              </p>
+            </CardContent>
+          </Card>
+        </TabsContent>
+        
+        {isReviewPhaseActive && (
+          <TabsContent value="submissions" className="mt-6">
+            <ChallengeSubmissionsTab challengeId={challengeId!} />
+          </TabsContent>
+        )}
+      </Tabs>
     </div>
   );
 };
