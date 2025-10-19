@@ -20,7 +20,6 @@ serve(async (req) => {
   }
   
   // 1. Authentication (Service Role is required for database updates)
-  // We use the service role key for secure server-side operations.
   const supabaseClient = createClient(
     Deno.env.get('SUPABASE_URL') ?? '',
     Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
@@ -53,11 +52,14 @@ serve(async (req) => {
     
     const maxChallengePoints = challenge.max_points;
 
-    // 3. Fetch all ratings for the challenge
-    const { data: ratings, error: ratingsError } = await supabaseClient
+    // 3. Fetch all ratings for submissions belonging to this challenge
+    const { data: ratingsData, error: ratingsError } = await supabaseClient
       .from('challenge_ratings')
-      .select('submission_user_id, rating')
-      .eq('challenge_id', challenge_id);
+      .select(`
+        rating,
+        user_challenges (user_id, challenge_id)
+      `)
+      .eq('user_challenges.challenge_id', challenge_id); // Filter by challenge_id via the join
 
     if (ratingsError) {
       console.error("Ratings fetch error:", ratingsError);
@@ -67,14 +69,19 @@ serve(async (req) => {
       })
     }
 
-    // 4. Calculate Average Rating per User
+    // 4. Calculate Average Rating per User (based on the submission user_id)
     const userRatingsMap = new Map<string, number[]>();
-    for (const rating of ratings) {
-      const userId = rating.submission_user_id;
-      if (!userRatingsMap.has(userId)) {
-        userRatingsMap.set(userId, []);
+    
+    for (const ratingEntry of ratingsData) {
+      const userId = ratingEntry.user_challenges?.user_id;
+      const rating = ratingEntry.rating;
+      
+      if (userId) {
+        if (!userRatingsMap.has(userId)) {
+          userRatingsMap.set(userId, []);
+        }
+        userRatingsMap.get(userId)?.push(rating);
       }
-      userRatingsMap.get(userId)?.push(rating.rating);
     }
 
     const userAverages = new Map<string, number>();

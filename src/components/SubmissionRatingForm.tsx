@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -9,15 +9,13 @@ import { showError, showSuccess } from "@/utils/toast";
 import { useSession } from "@/contexts/SessionContext";
 
 interface SubmissionRatingFormProps {
-  challengeId: string;
-  submissionUserId: string;
+  userChallengeId: string; // The ID of the user_challenges record (the submission)
   initialRating: number | null;
   onRatingSubmitted: () => void;
 }
 
 const SubmissionRatingForm: React.FC<SubmissionRatingFormProps> = ({
-  challengeId,
-  submissionUserId,
+  userChallengeId,
   initialRating,
   onRatingSubmitted,
 }) => {
@@ -26,6 +24,11 @@ const SubmissionRatingForm: React.FC<SubmissionRatingFormProps> = ({
   const queryClient = useQueryClient();
 
   const [rating, setRating] = useState<number | string>(initialRating ?? "");
+  
+  useEffect(() => {
+    // Update local state if initialRating changes (e.g., when switching submissions)
+    setRating(initialRating ?? "");
+  }, [initialRating]);
 
   const handleRatingChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
@@ -61,9 +64,8 @@ const SubmissionRatingForm: React.FC<SubmissionRatingFormProps> = ({
       const { data: existingRating } = await supabase
         .from('challenge_ratings')
         .select('id')
-        .eq('challenge_id', challengeId)
+        .eq('user_challenge_id', userChallengeId)
         .eq('reviewer_id', reviewerId)
-        .eq('submission_user_id', submissionUserId)
         .maybeSingle();
 
       if (existingRating) {
@@ -78,9 +80,8 @@ const SubmissionRatingForm: React.FC<SubmissionRatingFormProps> = ({
         const { error } = await supabase
           .from('challenge_ratings')
           .insert({
-            challenge_id: challengeId,
+            user_challenge_id: userChallengeId,
             reviewer_id: reviewerId,
-            submission_user_id: submissionUserId,
             rating: numericRating,
           });
         if (error) throw error;
@@ -88,7 +89,8 @@ const SubmissionRatingForm: React.FC<SubmissionRatingFormProps> = ({
     },
     onSuccess: () => {
       showSuccess(`Rating submitted successfully!`);
-      queryClient.invalidateQueries({ queryKey: ["challengeSubmissions", challengeId] });
+      // Invalidate the parent query to refresh the list and averages
+      queryClient.invalidateQueries({ queryKey: ["challengeSubmissions"] }); 
       onRatingSubmitted();
     },
     onError: (error) => {
@@ -110,9 +112,9 @@ const SubmissionRatingForm: React.FC<SubmissionRatingFormProps> = ({
   return (
     <form onSubmit={handleSubmit} className="flex items-center gap-2">
       <div className="space-y-1 flex-1">
-        <Label htmlFor={`rating-${submissionUserId}`} className="sr-only">Rate (0.0 - 10.0)</Label>
+        <Label htmlFor={`rating-${userChallengeId}`} className="sr-only">Rate (0.0 - 10.0)</Label>
         <Input
-          id={`rating-${submissionUserId}`}
+          id={`rating-${userChallengeId}`}
           type="number"
           step="0.1"
           min="0.0"

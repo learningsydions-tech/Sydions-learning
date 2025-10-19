@@ -11,7 +11,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import SubmissionRatingForm from "./SubmissionRatingForm";
 
 interface Submission {
-  id: string;
+  id: string; // This is user_challenges.id
   submission_url: string;
   user_id: string;
   profiles: {
@@ -21,6 +21,7 @@ interface Submission {
   } | null;
   challenge_ratings: {
     rating: number;
+    reviewer_id: string;
   }[];
 }
 
@@ -98,7 +99,7 @@ const ChallengeSubmissionsTab: React.FC<ChallengeSubmissionsTabProps> = ({ chall
             
             // Find the current user's rating for this submission
             const currentUserRating = submission.challenge_ratings.find(
-              (r: any) => r.reviewer_id === currentUserId
+              (r) => r.reviewer_id === currentUserId
             )?.rating || null;
 
             return (
@@ -125,8 +126,7 @@ const ChallengeSubmissionsTab: React.FC<ChallengeSubmissionsTabProps> = ({ chall
                         </a>
                     </Button>
                     <SubmissionRatingForm
-                        challengeId={challengeId}
-                        submissionUserId={submission.user_id}
+                        userChallengeId={submission.id} // Pass the user_challenges ID
                         initialRating={currentUserRating}
                         onRatingSubmitted={refetch} // Refetch submissions to update average/user rating
                     />
