@@ -102,8 +102,14 @@ const ChallengeDetailPage = () => {
 
       if (updateError) throw updateError;
       
-      // 2. Award completion coins (Mocking the coin update)
-      console.log(`Awarding ${challenge?.completion_reward_coins} coins to user ${userId} for completion.`);
+      // 2. Award completion coins using RPC
+      if (challenge && challenge.completion_reward_coins > 0) {
+        const { error: coinError } = await supabase.rpc('update_user_coins', {
+          p_user_id: userId,
+          p_coin_amount: challenge.completion_reward_coins,
+        });
+        if (coinError) throw coinError;
+      }
 
       return true;
     },
@@ -111,6 +117,7 @@ const ChallengeDetailPage = () => {
       showSuccess(`Submission successful! You received ${challenge?.completion_reward_coins} coins.`);
       queryClient.invalidateQueries({ queryKey: ["userChallengeStatus", challengeId, userId] });
       queryClient.invalidateQueries({ queryKey: ["dashboardProfile", userId] });
+      queryClient.invalidateQueries({ queryKey: ["userCoins", userId] }); // Update shop balance
     },
     onError: (error) => {
       console.error("Submission failed:", error);

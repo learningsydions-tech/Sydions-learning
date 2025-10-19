@@ -13,7 +13,6 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useSession } from "@/contexts/SessionContext";
 import { showError, showSuccess } from "@/utils/toast";
 import { Coins, Clock } from "lucide-react";
 import { format } from "date-fns";
@@ -61,9 +60,14 @@ const JoinChallengeButton: React.FC<JoinChallengeButtonProps> = ({
         throw insertError;
       }
       
-      // 2. Award participation coins (Mocking the coin update for now, assuming a server function or trigger handles the actual balance update)
-      // In a real app, we would call an Edge Function or rely on a database trigger to update the user's coin balance.
-      console.log(`Awarding ${participationRewardCoins} coins to user ${userId} for participation.`);
+      // 2. Award participation coins using RPC
+      if (participationRewardCoins > 0) {
+        const { error: coinError } = await supabase.rpc('update_user_coins', {
+          p_user_id: userId,
+          p_coin_amount: participationRewardCoins,
+        });
+        if (coinError) throw coinError;
+      }
 
       return true;
     },
@@ -71,6 +75,7 @@ const JoinChallengeButton: React.FC<JoinChallengeButtonProps> = ({
       showSuccess(`Successfully joined '${challengeTitle}'! You received ${participationRewardCoins} coins.`);
       queryClient.invalidateQueries({ queryKey: ["userChallengeStatus", challengeId, userId] });
       queryClient.invalidateQueries({ queryKey: ["dashboardProfile", userId] }); // To update coin balance/stats
+      queryClient.invalidateQueries({ queryKey: ["userCoins", userId] }); // Update shop balance
       onJoinSuccess();
     },
     onError: (error) => {
@@ -102,7 +107,7 @@ const JoinChallengeButton: React.FC<JoinChallengeButtonProps> = ({
                 <p className="text-sm font-medium">Instant Reward: {participationRewardCoins} Coins</p>
             </div>
           </AlertDialogDescription>
-        </AlertDialogHeader>
+        </CardHeader>
         <AlertDialogFooter>
           <AlertDialogCancel disabled={isPending}>Cancel</AlertDialogCancel>
           <AlertDialogAction onClick={() => joinMutation.mutate()} disabled={isPending}>
