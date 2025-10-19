@@ -9,13 +9,26 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Edit, Shield, Trophy, Zap, Users, FolderKanban, Award } from "lucide-react";
+import { Edit, Shield, Trophy, Zap, Users, FolderKanban, Award, ExternalLink } from "lucide-react";
 import { useSession } from "@/contexts/SessionContext";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { showError } from "@/utils/toast";
 import { format } from "date-fns";
 import { Link } from "react-router-dom";
+import { Badge } from "@/components/ui/badge";
+
+interface SubmittedChallenge {
+  id: string;
+  submission_url: string;
+  submitted_at: string;
+  xp_awarded: number;
+  status: string;
+  challenges: {
+    title: string;
+    difficulty: string;
+  } | null;
+}
 
 interface Profile {
   id: string;
@@ -29,10 +42,12 @@ interface Profile {
   xp: number;
   challengesCompleted: number;
   guild: string;
+  submittedChallenges: SubmittedChallenge[];
 }
 
 const fetchProfile = async (userId: string): Promise<Profile> => {
-  const { data, error } = await supabase
+  // 1. Fetch Profile, Stats, and Guild
+  const { data: profileData, error: profileError } = await supabase
     .from("profiles")
     .select(`
       id, 
@@ -46,25 +61,46 @@ const fetchProfile = async (userId: string): Promise<Profile> => {
     .eq("id", userId)
     .single();
 
-  if (error) {
+  if (profileError) {
     showError("Failed to load profile.");
-    throw error;
+    throw profileError;
+  }
+  
+  // 2. Fetch Submitted Challenges
+  const { data: submittedChallenges, error: challengesError } = await supabase
+    .from("user_challenges")
+    .select(`
+      id,
+      submission_url,
+      submitted_at,
+      xp_awarded,
+      status,
+      challenges (title, difficulty)
+    `)
+    .eq("user_id", userId)
+    .eq("status", "submitted")
+    .order("submitted_at", { ascending: false });
+
+  if (challengesError) {
+    console.error("Failed to load submitted challenges:", challengesError);
+    // Continue even if challenges fail to load
   }
 
   // Combine names and extract stats
-  const fullName = [data.first_name, data.last_name].filter(Boolean).join(" ") || "User";
-  const stats = Array.isArray(data.user_stats) ? data.user_stats[0] : data.user_stats;
-  const guildName = data.guild_members && data.guild_members.length > 0 
-    ? (data.guild_members[0].guilds as { name: string } | null)?.name || "None"
+  const fullName = [profileData.first_name, profileData.last_name].filter(Boolean).join(" ") || "User";
+  const stats = Array.isArray(profileData.user_stats) ? profileData.user_stats[0] : profileData.user_stats;
+  const guildName = profileData.guild_members && profileData.guild_members.length > 0 
+    ? (profileData.guild_members[0].guilds as { name: string } | null)?.name || "None"
     : "None";
   
   return {
-    ...data,
+    ...profileData,
     name: fullName,
     rank: stats?.xp > 1000 ? "Veteran" : "Rookie", // Simple mock rank logic
     xp: stats?.xp || 0,
     challengesCompleted: stats?.challenges_completed || 0,
     guild: guildName,
+    submittedChallenges: (submittedChallenges || []) as SubmittedChallenge[],
   } as Profile;
 };
 
@@ -93,6 +129,7 @@ const ProfilePage = () => {
     
   const displayName = profile?.name || userEmail || "Guest";
   const displayAvatar = profile?.avatar_url || "/placeholder.svg";
+  const submittedChallenges = profile?.submittedChallenges || [];
 
   return (
     <div className="space-y-8">
@@ -124,7 +161,7 @@ const ProfilePage = () => {
         <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="achievements">Achievements</TabsTrigger>
-          <TabsTrigger value="projects">Projects</TabsTrigger>
+          <TabsTrigger value="projects">Projects ({submittedChallenges.length})</TabsTrigger>
         </TabsList>
 
         {/* Overview Tab */}
@@ -190,15 +227,39 @@ const ProfilePage = () => {
         <TabsContent value="projects" className="mt-6">
           <Card>
             <CardHeader>
-              <CardTitle>Projects</CardTitle>
-              <CardDescription>A collection of your projects and contributions.</CardDescription>
+              <CardTitle>Submitted Projects</CardTitle>
+              <CardDescription>A collection of challenges you have submitted.</CardDescription>
             </CardHeader>
-            <CardContent className="py-20 flex flex-col items-center justify-center text-center">
-              <FolderKanban className="w-16 h-16 text-muted-foreground mb-4" />
-              <h3 className="text-xl font-semibold">No projects yet</h3>
-              <p className="text-muted-foreground mt-2">
-                Your submitted projects will appear here.
-              </p>
+            <CardContent className="space-y-4">
+              {submittedChallenges.length > 0 ? (
+                submittedChallenges.map((submission) => (
+                  <div key={submission.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors">
+                    <div className="space-y-1">
+                      <p className="font-semibold">{submission.challenges?.title || "Unknown Challenge"}</p>
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <Badge variant="secondary">{submission.challenges?.difficulty}</Badge>
+                        <span className="text-xs">Submitted: {format(new Date(submission.submitted_at), "MMM dd, yyyy")}</span>
+                        {submission.status === 'completed' && (
+                          <span className="text-xs font-medium text-green-600 dark:text-green-400">| Awarded {submission.xp_awarded} XP</span>
+                        )}
+                      </div>
+                    </div>
+                    <Button variant="outline" size="sm" asChild>
+                      <a href={submission.submission_url} target="_blank" rel="noopener noreferrer">
+                        View Project <ExternalLink className="w-4 h-4 ml-2" />
+                      </a>
+                    </Button>
+                  </div>
+                ))
+              ) : (
+                <div className="py-20 flex flex-col items-center justify-center text-center">
+                  <FolderKanban className="w-16 h-16 text-muted-foreground mb-4" />
+                  <h3 className="text-xl font-semibold">No projects submitted yet</h3>
+                  <p className="text-muted-foreground mt-2">
+                    Join and submit challenges to see them appear here.
+                  </p>
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
