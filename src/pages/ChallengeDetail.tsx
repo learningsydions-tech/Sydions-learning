@@ -13,6 +13,7 @@ import { useSession } from "@/contexts/SessionContext";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import ChallengeSubmissionsTab from "@/components/ChallengeSubmissionsTab";
+import AdminChallengeFinalizeButton from "@/components/AdminChallengeFinalizeButton";
 
 interface ChallengeDetail {
   id: string;
@@ -146,6 +147,10 @@ const ChallengeDetailPage = () => {
   const reviewPhaseStarts = deadlineDate ? addHours(deadlineDate, 24) : null;
   const isReviewPhaseActive = reviewPhaseStarts ? isAfter(new Date(), reviewPhaseStarts) : false;
   
+  // Mock Admin check: For demonstration, we assume the user is an admin if they are logged in.
+  // In a real app, this would check a user role.
+  const isAdmin = !!userId; 
+  
   const renderActionSection = () => {
     if (!hasJoined) {
       return (
@@ -245,12 +250,20 @@ const ChallengeDetailPage = () => {
           
           {/* Review Phase Status */}
           {isReviewPhaseActive && (
-            <div className="p-4 bg-info/10 border border-info/30 rounded-lg text-info-foreground">
-              <p className="font-semibold flex items-center">
-                <Users className="w-4 h-4 mr-2" />
-                Community Review Phase is Active
-              </p>
-              <p className="text-sm mt-1">The submission deadline has passed. You can now review and rate other projects.</p>
+            <div className="space-y-4">
+              <div className="p-4 bg-info/10 border border-info/30 rounded-lg text-info-foreground">
+                <p className="font-semibold flex items-center">
+                  <Users className="w-4 h-4 mr-2" />
+                  Community Review Phase is Active
+                </p>
+                <p className="text-sm mt-1">The submission deadline has passed. You can now review and rate other projects.</p>
+              </div>
+              {isAdmin && (
+                <AdminChallengeFinalizeButton 
+                  challengeId={challengeId!} 
+                  challengeTitle={challenge.title} 
+                />
+              )}
             </div>
           )}
         </CardContent>
