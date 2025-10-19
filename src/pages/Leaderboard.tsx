@@ -13,7 +13,7 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
+}
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -41,7 +41,11 @@ interface RawLeaderboardData {
     first_name: string | null;
     last_name: string | null;
     avatar_url: string | null;
-    // Removed guild_members for testing
+    guild_members: {
+      guilds: {
+        name: string;
+      } | null;
+    }[];
   } | null;
 }
 
@@ -56,7 +60,8 @@ const fetchGlobalLeaderboard = async (currentUserId: string | undefined): Promis
       profiles (
         first_name, 
         last_name, 
-        avatar_url
+        avatar_url,
+        guild_members (guilds (name))
       )
     `)
     .order("xp", { ascending: false }) // Order directly by XP in user_stats
@@ -71,8 +76,8 @@ const fetchGlobalLeaderboard = async (currentUserId: string | undefined): Promis
     const profile = stat.profiles;
     const fullName = [profile?.first_name, profile?.last_name].filter(Boolean).join(" ") || "Unknown User";
     
-    // Mock guild name since we removed the join
-    const guildName = "None"; 
+    // Extract guild name from nested structure
+    const guildName = profile?.guild_members?.[0]?.guilds?.name || "None"; 
 
     return {
       rank: index + 1,
