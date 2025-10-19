@@ -34,27 +34,33 @@ interface LeaderboardUser {
 }
 
 interface RawLeaderboardData {
-  id: string;
-  first_name: string | null;
-  last_name: string | null;
-  avatar_url: string | null;
-  user_stats: { xp: number; challenges_completed: number } | null;
-  guild_members: { guilds: { name: string } | null }[];
+  user_id: string;
+  xp: number;
+  challenges_completed: number;
+  profiles: {
+    first_name: string | null;
+    last_name: string | null;
+    avatar_url: string | null;
+    guild_members: { guilds: { name: string } | null }[];
+  } | null;
 }
 
 const fetchGlobalLeaderboard = async (currentUserId: string | undefined): Promise<LeaderboardUser[]> => {
+  // Query user_stats directly and join profiles and guild_members
   const { data, error } = await supabase
-    .from("profiles")
+    .from("user_stats")
     .select(`
-      id, 
-      first_name, 
-      last_name, 
-      avatar_url,
-      user_stats (xp, challenges_completed),
-      guild_members (guilds (name))
+      user_id, 
+      xp, 
+      challenges_completed,
+      profiles (
+        first_name, 
+        last_name, 
+        avatar_url,
+        guild_members (guilds (name))
+      )
     `)
-    // FIX: Use the full path for ordering by foreign table column
-    .order("xp", { ascending: false, foreignTable: "user_stats" })
+    .order("xp", { ascending: false }) // Order directly by XP in user_stats
     .limit(10);
 
   if (error) {
@@ -62,21 +68,22 @@ const fetchGlobalLeaderboard = async (currentUserId: string | undefined): Promis
     throw error;
   }
 
-  return (data as RawLeaderboardData[]).map((user, index) => {
-    const fullName = [user.first_name, user.last_name].filter(Boolean).join(" ") || "Unknown User";
-    const stats = Array.isArray(user.user_stats) ? user.user_stats[0] : user.user_stats;
-    const guildName = user.guild_members && user.guild_members.length > 0 
-      ? (user.guild_members[0].guilds as { name: string } | null)?.name || "None"
+  return (data as RawLeaderboardData[]).map((stat, index) => {
+    const profile = stat.profiles;
+    const fullName = [profile?.first_name, profile?.last_name].filter(Boolean).join(" ") || "Unknown User";
+    
+    const guildName = profile?.guild_members && profile.guild_members.length > 0 
+      ? (profile.guild_members[0].guilds as { name: string } | null)?.name || "None"
       : "None";
 
     return {
       rank: index + 1,
       name: fullName,
-      avatarUrl: user.avatar_url || "/placeholder.svg",
-      xp: stats?.xp || 0,
-      challenges: stats?.challenges_completed || 0,
+      avatarUrl: profile?.avatar_url || "/placeholder.svg",
+      xp: stat.xp || 0,
+      challenges: stat.challenges_completed || 0,
       guild: guildName,
-      isCurrentUser: user.id === currentUserId,
+      isCurrentUser: stat.user_id === currentUserId,
     };
   });
 };
