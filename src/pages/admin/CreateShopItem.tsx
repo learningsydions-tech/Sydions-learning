@@ -20,6 +20,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { showError, showSuccess } from "@/utils/toast";
+import { Upload, Image, XCircle } from "lucide-react";
 
 const CreateShopItemPage = () => {
   const navigate = useNavigate();
@@ -32,12 +33,45 @@ const CreateShopItemPage = () => {
   const [rarity, setRarity] = useState("Common");
   const [isRewardOnly, setIsRewardOnly] = useState(false);
   const [isForGuildStore, setIsForGuildStore] = useState(false);
-  const [imageUrl, setImageUrl] = useState(""); // Using text input for simplicity
+  const [imageFile, setImageFile] = useState<File | null>(null);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setImageFile(e.target.files[0]);
+    }
+  };
+
+  const uploadImage = async (file: File): Promise<string> => {
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
+    const filePath = `public/${fileName}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from('shop_items')
+      .upload(filePath, file, {
+        cacheControl: '3600',
+        upsert: false,
+      });
+
+    if (uploadError) {
+      throw new Error(`Image upload failed: ${uploadError.message}`);
+    }
+
+    // Get the public URL
+    const { data: { publicUrl } } = supabase.storage
+      .from('shop_items')
+      .getPublicUrl(filePath);
+      
+    return publicUrl;
+  };
 
   const createItemMutation = useMutation({
     mutationFn: async () => {
       if (!name.trim()) throw new Error("Item name is required.");
       if (price < 0) throw new Error("Price cannot be negative.");
+      if (!imageFile) throw new Error("Image file is required.");
+
+      const imageUrl = await uploadImage(imageFile);
 
       const { data, error } = await supabase
         .from("shop_items")
@@ -49,7 +83,7 @@ const CreateShopItemPage = () => {
           rarity: rarity,
           is_reward_only: isRewardOnly,
           is_for_guild_store: isForGuildStore,
-          image_url: imageUrl.trim() || null,
+          image_url: imageUrl,
         })
         .select()
         .single();
@@ -167,15 +201,35 @@ const CreateShopItemPage = () => {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="image-url">Image URL (Placeholder)</Label>
-                  <Input 
-                    id="image-url" 
-                    type="text" 
-                    placeholder="/placeholder.svg" 
-                    value={imageUrl}
-                    onChange={(e) => setImageUrl(e.target.value)}
-                    disabled={isPending}
-                  />
+                  <Label htmlFor="image-file">Item Image</Label>
+                  <div className="flex items-center gap-2">
+                    <Input 
+                      id="image-file" 
+                      type="file" 
+                      accept="image/*"
+                      onChange={handleFileChange}
+                      required={!imageFile}
+                      disabled={isPending}
+                      className="flex-1"
+                    />
+                    {imageFile && (
+                      <Button 
+                        type="button" 
+                        variant="outline" 
+                        size="icon" 
+                        onClick={() => setImageFile(null)}
+                        title="Remove image"
+                      >
+                        <XCircle className="w-4 h-4 text-destructive" />
+                      </Button>
+                    )}
+                  </div>
+                  {imageFile && (
+                    <p className="text-sm text-muted-foreground flex items-center gap-1">
+                      <Image className="w-4 h-4" />
+                      {imageFile.name}
+                    </p>
+                  )}
                 </div>
               </div>
 

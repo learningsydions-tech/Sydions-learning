@@ -20,7 +20,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { showError, showSuccess } from "@/utils/toast";
-import { Loader2 } from "lucide-react";
+import { Loader2, Image, XCircle } from "lucide-react";
 
 interface ShopItemDetail {
   id: string;
@@ -66,7 +66,10 @@ const EditShopItemPage = () => {
   const [rarity, setRarity] = useState<ShopItemDetail['rarity']>("Common");
   const [isRewardOnly, setIsRewardOnly] = useState(false);
   const [isForGuildStore, setIsForGuildStore] = useState(false);
-  const [imageUrl, setImageUrl] = useState("");
+  
+  // New state for file upload
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [currentImageUrl, setCurrentImageUrl] = useState<string | null>(null);
 
   // Effect to populate state when data is fetched
   useEffect(() => {
@@ -78,15 +81,53 @@ const EditShopItemPage = () => {
       setRarity(initialItem.rarity);
       setIsRewardOnly(initialItem.is_reward_only);
       setIsForGuildStore(initialItem.is_for_guild_store);
-      setImageUrl(initialItem.image_url || "");
+      setCurrentImageUrl(initialItem.image_url);
     }
   }, [initialItem]);
+  
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setImageFile(e.target.files[0]);
+    }
+  };
+  
+  const uploadImage = async (file: File): Promise<string> => {
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
+    const filePath = `public/${fileName}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from('shop_items')
+      .upload(filePath, file, {
+        cacheControl: '3600',
+        upsert: false,
+      });
+
+    if (uploadError) {
+      throw new Error(`Image upload failed: ${uploadError.message}`);
+    }
+
+    // Get the public URL
+    const { data: { publicUrl } } = supabase.storage
+      .from('shop_items')
+      .getPublicUrl(filePath);
+      
+    return publicUrl;
+  };
 
   const updateItemMutation = useMutation({
     mutationFn: async () => {
       if (!itemId) throw new Error("Item ID missing.");
       if (!name.trim()) throw new Error("Item name is required.");
       if (price < 0) throw new Error("Price cannot be negative.");
+      
+      let newImageUrl = currentImageUrl;
+
+      if (imageFile) {
+        newImageUrl = await uploadImage(imageFile);
+      } else if (!currentImageUrl) {
+        throw new Error("Image is required.");
+      }
 
       const { error } = await supabase
         .from("shop_items")
@@ -98,7 +139,7 @@ const EditShopItemPage = () => {
           rarity: rarity,
           is_reward_only: isRewardOnly,
           is_for_guild_store: isForGuildStore,
-          image_url: imageUrl.trim() || null,
+          image_url: newImageUrl,
         })
         .eq("id", itemId);
 
@@ -233,15 +274,37 @@ const EditShopItemPage = () => {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="image-url">Image URL (Placeholder)</Label>
-                  <Input 
-                    id="image-url" 
-                    type="text" 
-                    placeholder="/placeholder.svg" 
-                    value={imageUrl}
-                    onChange={(e) => setImageUrl(e.target.value)}
-                    disabled={isPending}
-                  />
+                  <Label htmlFor="image-file">Item Image</Label>
+                  <div className="flex items-center gap-2">
+                    <Input 
+                      id="image-file" 
+                      type="file" 
+                      accept="image/*"
+                      onChange={handleFileChange}
+                      disabled={isPending}
+                      className="flex-1"
+                    />
+                    {imageFile && (
+                      <Button 
+                        type="button" 
+                        variant="outline" 
+                        size="icon" 
+                        onClick={() => setImageFile(null)}
+                        title="Remove new image"
+                      >
+                        <XCircle className="w-4 h-4 text-destructive" />
+                      </Button>
+                    )}
+                  </div>
+                  {(imageFile || currentImageUrl) && (
+                    <p className="text-sm text-muted-foreground flex items-center gap-1">
+                      <Image className="w-4 h-4" />
+                      {imageFile ? `New file: ${imageFile.name}` : `Current URL: ${currentImageUrl}`}
+                    </p>
+                  )}
+                  {!imageFile && currentImageUrl && (
+                    <p className="text-xs text-muted-foreground">Upload a new file above to replace the current image.</p>
+                  )}
                 </div>
               </div>
 
