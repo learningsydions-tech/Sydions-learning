@@ -1,155 +1,122 @@
 import React from "react";
-import { Calendar, Users, Trophy, Zap } from "lucide-react";
-import StatCard from "@/components/StatCard";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { useSession } from "@/contexts/SessionContext";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import { showError } from "@/utils/toast";
+import { Link } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ArrowRight, Users, Zap, ClipboardList, Loader2, Shield, Trophy } from "lucide-react";
+import { usePublicStats } from "@/hooks/use-public-stats";
+import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 
-interface Profile {
-  id: string;
-  first_name: string | null;
-  last_name: string | null;
-  avatar_url: string | null;
-  // Combined fields
-  name: string;
-  rank: string;
-  xp: number;
-  challengesCompleted: number;
+// Component for displaying a single statistic
+interface StatDisplayProps {
+  icon: React.ReactNode;
+  value: string | number;
+  label: string;
 }
 
-const fetchProfileForDashboard = async (userId: string): Promise<Profile> => {
-  const { data, error } = await supabase
-    .from("profiles")
-    .select(`
-      id, 
-      first_name, 
-      last_name, 
-      avatar_url,
-      user_stats (xp, challenges_completed)
-    `)
-    .eq("id", userId)
-    .single();
+const StatDisplay: React.FC<StatDisplayProps> = ({ icon, value, label }) => (
+  <Card className="text-center transition-all duration-500 hover:shadow-xl hover:scale-[1.02] bg-card/80 backdrop-blur-sm">
+    <CardContent className="p-6 flex flex-col items-center">
+      <div className="mb-3 text-primary">{icon}</div>
+      <p className="text-3xl font-extrabold text-foreground">{value}</p>
+      <p className="text-sm text-muted-foreground">{label}</p>
+    </CardContent>
+  </Card>
+);
 
-  if (error) {
-    console.error("Failed to load dashboard profile:", error);
-    // Fallback structure
-    return {
-      id: userId,
-      first_name: null,
-      last_name: null,
-      avatar_url: null,
-      name: "User",
-      rank: "Rookie",
-      xp: 0,
-      challengesCompleted: 0,
-    };
-  }
+const IndexPage = () => {
+  const { stats, latestChallenges, isLoading, error } = usePublicStats();
 
-  const fullName = [data.first_name, data.last_name].filter(Boolean).join(" ") || "User";
-  const stats = Array.isArray(data.user_stats) ? data.user_stats[0] : data.user_stats;
-  
-  return {
-    id: userId,
-    first_name: data.first_name,
-    last_name: data.last_name,
-    avatar_url: data.avatar_url,
-    name: fullName,
-    rank: stats?.xp > 1000 ? "Veteran" : "Rookie", // Simple mock rank logic
-    xp: stats?.xp || 0,
-    challengesCompleted: stats?.challenges_completed || 0,
-  } as Profile;
-};
-
-const Dashboard = () => {
-  const { session, loading: sessionLoading } = useSession();
-  const userId = session?.user?.id;
-  const userEmail = session?.user?.email;
-
-  const { data: profile, isLoading: profileLoading } = useQuery<Profile>({
-    queryKey: ["dashboardProfile", userId],
-    queryFn: () => fetchProfileForDashboard(userId!),
-    enabled: !!userId && !sessionLoading,
-  });
-
-  const displayName = profile?.name || userEmail || "Guest";
-  const displayXP = profile?.xp || 0;
-  const displayRank = profile?.rank || "No Rank";
-  const displayChallenges = profile?.challengesCompleted || 0;
-
-  const stats = [
-    {
-      title: "Active Challenges",
-      value: 0, // Mock until we implement user challenge tracking
-      icon: Calendar,
-      color: "bg-indigo-500/20 text-indigo-400",
-    },
-    {
-      title: "Challenges Completed",
-      value: displayChallenges,
-      icon: Users,
-      color: "bg-green-500/20 text-green-400",
-    },
-    {
-      title: "Your Rank",
-      value: displayRank,
-      icon: Trophy,
-      color: "bg-amber-500/20 text-amber-400",
-    },
-    {
-      title: "Total XP",
-      value: displayXP.toLocaleString(),
-      icon: Zap,
-      color: "bg-blue-500/20 text-blue-400",
-    },
+  const statsData = [
+    { icon: <Users className="w-8 h-8" />, value: stats?.totalUsers.toLocaleString() || 0, label: "Total Users" },
+    { icon: <ClipboardList className="w-8 h-8" />, value: stats?.totalChallenges.toLocaleString() || 0, label: "Total Challenges" },
+    { icon: <Zap className="w-8 h-8" />, value: stats?.activeChallenges.toLocaleString() || 0, label: "Active Challenges" },
   ];
 
-  if (sessionLoading || profileLoading) {
-    return <div className="text-center py-12 text-muted-foreground">Loading dashboard...</div>;
-  }
-
   return (
-    <div className="space-y-8">
-      {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold text-foreground">
-          Welcome back, {displayName}!
-        </h1>
-        <p className="text-muted-foreground mt-1">
-          Here's what's happening with your challenges today.
-        </p>
-      </div>
-
-      {/* Stat Cards Grid */}
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-        {stats.map((stat) => (
-          <StatCard
-            key={stat.title}
-            title={stat.title}
-            value={stat.value}
-            icon={stat.icon}
-            iconColorClass={stat.color}
-          />
-        ))}
-      </div>
-
-      {/* Active Challenges Section */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Active Challenges</CardTitle>
-          <CardDescription>
-            Upcoming deadlines for challenges you can participate in
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="border-t border-border pt-6 text-center text-muted-foreground">
-            No active challenges at the moment. Check back later!
+    <div className="min-h-screen pt-16 pb-20 bg-background">
+      <div className="container mx-auto px-4">
+        
+        {/* Hero Section */}
+        <section className="text-center py-20 md:py-32 space-y-6">
+          <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-primary to-accent animate-pulse-colorful">
+            Sydions: Master Your Craft
+          </h1>
+          <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
+            Join a global community of developers, designers, and security experts. Tackle real-world challenges, earn XP, and climb the leaderboard.
+          </p>
+          <div className="flex justify-center gap-4 pt-4">
+            <Button size="lg" asChild className="bg-gradient-primary hover:opacity-90 transition-opacity">
+              <Link to="/login">Start Your Journey</Link>
+            </Button>
+            <Button size="lg" variant="outline" asChild>
+              <Link to="/explore">Explore Challenges</Link>
+            </Button>
           </div>
-        </CardContent>
-      </Card>
+        </section>
+
+        {/* Stats Section */}
+        <section className="py-12">
+          {isLoading ? (
+            <div className="text-center py-12"><Loader2 className="w-8 h-8 animate-spin mx-auto text-primary" /></div>
+          ) : error ? (
+            <div className="text-center py-12 text-destructive">Failed to load stats.</div>
+          ) : (
+            <div className="grid gap-6 md:grid-cols-3">
+              {statsData.map((stat, index) => (
+                <StatDisplay key={index} {...stat} />
+              ))}
+            </div>
+          )}
+        </section>
+
+        {/* Latest Challenges Section */}
+        <section className="py-12">
+          <div className="flex justify-between items-center mb-8">
+            <h2 className="text-3xl font-bold">Latest Ongoing Projects</h2>
+            <Button variant="link" asChild>
+              <Link to="/challenges">
+                View All <ArrowRight className="w-4 h-4 ml-2" />
+              </Link>
+            </Button>
+          </div>
+
+          {isLoading ? (
+            <div className="grid gap-6 md:grid-cols-3">
+                {[1, 2, 3].map(i => <Card key={i}><CardContent className="h-40 flex items-center justify-center"><Loader2 className="w-6 h-6 animate-spin text-muted-foreground" /></CardContent></Card>)}
+            </div>
+          ) : latestChallenges && latestChallenges.length > 0 ? (
+            <div className="grid gap-6 md:grid-cols-3">
+              {latestChallenges.map((challenge) => (
+                <Card key={challenge.id} className="hover:shadow-md transition-shadow">
+                  <CardHeader>
+                    <CardTitle className="text-xl">{challenge.title}</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <div className="flex flex-wrap gap-2">
+                      <Badge variant="secondary">{challenge.type}</Badge>
+                      <Badge variant="outline">{challenge.difficulty}</Badge>
+                    </div>
+                    <div className="flex items-center gap-2 text-sm font-medium text-primary">
+                      <Trophy className="w-4 h-4" />
+                      <span>{challenge.max_points} XP Reward</span>
+                    </div>
+                    <Button variant="link" size="sm" className="p-0 h-auto" asChild>
+                        <Link to={`/challenges/${challenge.id}`}>View Details</Link>
+                    </Button>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-12 text-muted-foreground border rounded-lg">
+              No active challenges found.
+            </div>
+          )}
+        </section>
+      </div>
     </div>
   );
 };
 
-export default Dashboard;
+export default IndexPage;

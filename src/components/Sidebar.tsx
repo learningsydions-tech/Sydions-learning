@@ -13,7 +13,7 @@ interface NavItem {
 }
 
 const baseNavItems: NavItem[] = [
-  { name: "Dashboard", icon: Home, href: "/" },
+  { name: "Dashboard", icon: Home, href: "/dashboard" }, // Updated path
   { name: "Admin Panel", icon: Grid, href: "/admin", requiresAdmin: true },
   { name: "Challenges", icon: Calendar, href: "/challenges" },
   { name: "Explore", icon: Compass, href: "/explore" },

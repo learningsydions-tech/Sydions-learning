@@ -3,7 +3,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Index from "./pages/Index";
+import Index from "./pages/Index"; // New public landing page
 import NotFound from "./pages/NotFound";
 
 // Auth
@@ -12,6 +12,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 
 // Main Layout
 import Layout from "./components/Layout";
+import DashboardPage from "./pages/Dashboard"; // Renamed from Index
 import ExplorePage from "./pages/Explore";
 import FriendsPage from "./pages/Friends";
 import GuildsPage from "./pages/Guilds";
@@ -39,7 +40,7 @@ import ReportsPage from "./pages/admin/Reports";
 import CreateChallengePage from "./pages/admin/CreateChallenge";
 import EditChallengePage from "./pages/admin/EditChallenge";
 import CreateShopItemPage from "./pages/admin/CreateShopItem";
-import EditShopItemPage from "./pages/admin/EditShopItem"; // <-- New Import
+import EditShopItemPage from "./pages/admin/EditShopItem";
 
 const queryClient = new QueryClient();
 
@@ -51,6 +52,8 @@ function App() {
         <Sonner />
         <BrowserRouter>
           <Routes>
+            {/* Public Routes */}
+            <Route path="/" element={<Index />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/onboarding" element={<OnboardingPage />} />
 
@@ -58,10 +61,10 @@ function App() {
             <Route element={<ProtectedRoute />}>
               {/* User-facing routes */}
               <Route
-                path="/"
+                path="/dashboard" // New protected route for the user dashboard
                 element={
                   <Layout>
-                    <Index />
+                    <DashboardPage />
                   </Layout>
                 }
               />
@@ -228,7 +231,7 @@ function App() {
                 }
               />
               <Route
-                path="/admin/shop/edit/:itemId" // <-- New Route
+                path="/admin/shop/edit/:itemId"
                 element={
                   <AdminLayout>
                     <EditShopItemPage />

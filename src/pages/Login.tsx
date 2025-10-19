@@ -10,7 +10,7 @@ const LoginPage = () => {
 
   useEffect(() => {
     if (session) {
-      navigate('/');
+      navigate('/dashboard'); // Redirect to /dashboard instead of /
     }
   }, [session, navigate]);
 
