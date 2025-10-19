@@ -9,11 +9,12 @@ interface NavItem {
   name: string;
   icon: LucideIcon;
   href: string;
+  requiresAdmin?: boolean;
 }
 
-const navItems: NavItem[] = [
+const baseNavItems: NavItem[] = [
   { name: "Dashboard", icon: Home, href: "/" },
-  { name: "Admin Panel", icon: Grid, href: "/admin" },
+  { name: "Admin Panel", icon: Grid, href: "/admin", requiresAdmin: true },
   { name: "Challenges", icon: Calendar, href: "/challenges" },
   { name: "Explore", icon: Compass, href: "/explore" },
   { name: "Messages", icon: MessageSquare, href: "/messages" },
@@ -29,7 +30,9 @@ const navItems: NavItem[] = [
 const Sidebar = () => {
   const location = useLocation();
   const currentPath = location.pathname;
-  const { supabase, session } = useSession();
+  const { supabase, session, isAdmin } = useSession();
+
+  const navItems = baseNavItems.filter(item => !item.requiresAdmin || isAdmin);
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();

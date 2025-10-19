@@ -13,6 +13,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { showError } from "@/utils/toast";
 import ChallengeCard from "@/components/ChallengeCard";
 import { useSession } from "@/contexts/SessionContext";
+import { Link } from "react-router-dom";
 
 interface Challenge {
   id: string;
@@ -73,7 +74,7 @@ const fetchActiveChallenges = async (userId: string | undefined): Promise<Challe
 };
 
 const ChallengesPage = () => {
-  const { session, loading: sessionLoading } = useSession();
+  const { session, loading: sessionLoading, isAdmin } = useSession();
   const userId = session?.user?.id;
   
   const { data: challenges, isLoading, error } = useQuery<Challenge[]>({
@@ -112,7 +113,11 @@ const ChallengesPage = () => {
             Participate in challenges to earn XP and climb the leaderboard
           </p>
         </div>
-        <Button>Create Challenge</Button>
+        {isAdmin && (
+          <Button asChild>
+            <Link to="/admin/challenges/new">Create Challenge</Link>
+          </Button>
+        )}
       </div>
 
       {/* Filters */}
