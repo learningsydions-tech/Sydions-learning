@@ -7,11 +7,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Star } from "lucide-react";
+import { Star, Loader2 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { showError } from "@/utils/toast";
 import ChallengeCard from "@/components/ChallengeCard";
+import { useSession } from "@/contexts/SessionContext";
 
 interface Challenge {
   id: string;
@@ -21,14 +22,47 @@ interface Challenge {
   difficulty: string;
   max_points: number;
   deadline: string | null;
+  // New fields from user_challenges join
+  user_challenges: { status: string }[] | null;
 }
 
-const fetchActiveChallenges = async (): Promise<Challenge[]> => {
-  const { data, error } = await supabase
+const fetchActiveChallenges = async (userId: string | undefined): Promise<Challenge[]> => {
+  let query = supabase
     .from("challenges")
-    .select("id, title, description, type, difficulty, max_points, deadline")
+    .select(`
+      id, 
+      title, 
+      description, 
+      type, 
+      difficulty, 
+      max_points, 
+      deadline,
+      user_challenges!inner (status)
+    `)
     .eq("status", "active")
     .limit(20);
+    
+  // If user is logged in, join their challenge status
+  if (userId) {
+    query = supabase
+      .from("challenges")
+      .select(`
+        id, 
+        title, 
+        description, 
+        type, 
+        difficulty, 
+        max_points, 
+        deadline,
+        user_challenges!left (status, user_id)
+      `)
+      .eq("status", "active")
+      .or(`user_challenges.user_id.eq.${userId},user_challenges.user_id.is.null`)
+      .limit(20);
+  }
+
+
+  const { data, error } = await query;
 
   if (error) {
     showError("Failed to load challenges.");
@@ -39,18 +73,34 @@ const fetchActiveChallenges = async (): Promise<Challenge[]> => {
 };
 
 const ChallengesPage = () => {
+  const { session, loading: sessionLoading } = useSession();
+  const userId = session?.user?.id;
+  
   const { data: challenges, isLoading, error } = useQuery<Challenge[]>({
-    queryKey: ["activeChallenges"],
-    queryFn: fetchActiveChallenges,
+    queryKey: ["activeChallenges", userId],
+    queryFn: () => fetchActiveChallenges(userId),
   });
 
-  if (isLoading) {
-    return <div className="text-center py-12 text-muted-foreground">Loading challenges...</div>;
+  if (isLoading || sessionLoading) {
+    return <div className="text-center py-12 text-muted-foreground flex flex-col items-center"><Loader2 className="w-8 h-8 animate-spin mb-4" /> Loading challenges...</div>;
   }
 
   if (error) {
     return <div className="text-center py-12 text-destructive">Error loading challenges: {error.message}</div>;
   }
+  
+  const getStatusBadge = (challenge: Challenge) => {
+    const userChallenge = challenge.user_challenges?.[0];
+    if (userChallenge) {
+      if (userChallenge.status === 'submitted') {
+        return <span className="text-sm font-medium text-green-600 dark:text-green-400">Submitted</span>;
+      }
+      if (userChallenge.status === 'joined') {
+        return <span className="text-sm font-medium text-blue-600 dark:text-blue-400">Joined</span>;
+      }
+    }
+    return null;
+  };
 
   return (
     <div className="flex flex-col h-full">
@@ -102,7 +152,9 @@ const ChallengesPage = () => {
               tags={[challenge.type, challenge.difficulty]}
               prize={`${challenge.max_points} XP`}
               imageUrl="/placeholder.svg" // Placeholder image for now
-            />
+            >
+              {getStatusBadge(challenge)}
+            </ChallengeCard>
           ))}
         </div>
       ) : (

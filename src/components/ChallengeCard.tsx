@@ -12,9 +12,10 @@ interface ChallengeCardProps {
   tags: string[];
   prize: string;
   imageUrl: string;
+  children?: React.ReactNode; // Added children prop
 }
 
-const ChallengeCard: React.FC<ChallengeCardProps> = ({ id, title, description, tags, prize, imageUrl }) => {
+const ChallengeCard: React.FC<ChallengeCardProps> = ({ id, title, description, tags, prize, imageUrl, children }) => {
   return (
     <Card className="overflow-hidden transition-shadow hover:shadow-lg flex flex-col">
       <CardHeader className="p-0">
@@ -34,11 +35,14 @@ const ChallengeCard: React.FC<ChallengeCardProps> = ({ id, title, description, t
           <p className="text-xs text-muted-foreground">Reward</p>
           <p className="font-bold text-lg text-primary">{prize}</p>
         </div>
-        <Button size="sm" asChild>
-          <Link to={`/challenges/${id}`}>
-            View Challenge <ArrowRight className="w-4 h-4 ml-2" />
-          </Link>
-        </Button>
+        <div className="flex flex-col items-end gap-1">
+          {children}
+          <Button size="sm" asChild>
+            <Link to={`/challenges/${id}`}>
+              View Challenge <ArrowRight className="w-4 h-4 ml-2" />
+            </Link>
+          </Button>
+        </div>
       </CardFooter>
     </Card>
   );
