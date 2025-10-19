@@ -66,7 +66,7 @@ const fetchUserChallengeStatus = async (challengeId: string, userId: string): Pr
 
 const ChallengeDetailPage = () => {
   const { challengeId } = useParams<{ challengeId: string }>();
-  const { session, loading: sessionLoading } = useSession();
+  const { session, loading: sessionLoading, isAdmin } = useSession();
   const userId = session?.user?.id;
   const queryClient = useQueryClient();
 
@@ -147,9 +147,6 @@ const ChallengeDetailPage = () => {
   const reviewPhaseStarts = deadlineDate ? addHours(deadlineDate, 24) : null;
   const isReviewPhaseActive = reviewPhaseStarts ? isAfter(new Date(), reviewPhaseStarts) : false;
   
-  // Mock Admin check: For demonstration, we assume the user is an admin if they are logged in.
-  // In a real app, this would check a user role.
-  const isAdmin = !!userId; 
   
   const renderActionSection = () => {
     if (!hasJoined) {
