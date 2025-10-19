@@ -7,9 +7,42 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Search } from "lucide-react";
+import { Search, Loader2 } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+
+interface Project {
+  id: string;
+  title: string;
+  type: string;
+}
+
+const mockProjects: Project[] = [
+  { id: "1", title: "Secure Auth System", type: "security" },
+  { id: "2", title: "E-commerce Frontend", type: "development" },
+  { id: "3", title: "Brand Identity Guide", type: "design" },
+];
+
+const fetchProjects = async (): Promise<Project[]> => {
+  // Simulate API delay
+  await new Promise(resolve => setTimeout(resolve, 500));
+  // In a real app, this would query a 'projects' table.
+  return mockProjects;
+};
 
 const ExplorePage = () => {
+  const { data: projects, isLoading, error } = useQuery<Project[]>({
+    queryKey: ["exploreProjects"],
+    queryFn: fetchProjects,
+  });
+
+  if (isLoading) {
+    return <div className="text-center py-12 text-muted-foreground"><Loader2 className="w-8 h-8 animate-spin mx-auto" /></div>;
+  }
+
+  if (error) {
+    return <div className="text-center py-12 text-destructive">Error loading projects: {error.message}</div>;
+  }
+
   return (
     <div className="flex flex-col h-full">
       {/* Header */}
@@ -42,14 +75,25 @@ const ExplorePage = () => {
         </Select>
       </div>
 
-      {/* Empty State Content */}
-      <div className="flex-grow flex flex-col items-center justify-center text-center h-[calc(100vh-22rem)]">
-        <Search className="w-16 h-16 text-muted-foreground mb-4" />
-        <h2 className="text-xl font-semibold">No projects found</h2>
-        <p className="text-muted-foreground mt-2">
-          Try adjusting your search or filter to find what you're looking for.
-        </p>
-      </div>
+      {/* Content */}
+      {projects && projects.length > 0 ? (
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {projects.map(project => (
+            <div key={project.id} className="p-4 border rounded-lg hover:bg-muted/50 transition-colors">
+              <h3 className="font-semibold">{project.title}</h3>
+              <p className="text-sm text-muted-foreground">{project.type}</p>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="flex-grow flex flex-col items-center justify-center text-center h-[calc(100vh-22rem)]">
+          <Search className="w-16 h-16 text-muted-foreground mb-4" />
+          <h2 className="text-xl font-semibold">No projects found</h2>
+          <p className="text-muted-foreground mt-2">
+            Try adjusting your search or filter to find what you're looking for.
+          </p>
+        </div>
+      )}
     </div>
   );
 };

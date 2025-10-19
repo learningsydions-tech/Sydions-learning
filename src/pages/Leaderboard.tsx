@@ -18,65 +18,67 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Trophy } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { showError } from "@/utils/toast";
+import { useSession } from "@/contexts/SessionContext";
 
-const mockLeaderboard = [
-  {
-    rank: 1,
-    name: "CyberNinja",
-    avatarUrl: "/placeholder.svg",
-    xp: 15200,
-    challenges: 42,
-    guild: "Cyber Knights",
-  },
-  {
-    rank: 2,
-    name: "CodeWizard",
-    avatarUrl: "/placeholder.svg",
-    xp: 14800,
-    challenges: 38,
-    guild: "Code Wizards",
-  },
-  {
-    rank: 3,
-    name: "PixelPerfect",
-    avatarUrl: "/placeholder.svg",
-    xp: 13500,
-    challenges: 35,
-    guild: "Design Dynasty",
-  },
-  {
-    rank: 4,
-    name: "DataDynamo",
-    avatarUrl: "/placeholder.svg",
-    xp: 12900,
-    challenges: 33,
-    guild: "Data Mavericks",
-  },
-  {
-    rank: 5,
-    name: "CloudCommander",
-    avatarUrl: "/placeholder.svg",
-    xp: 11500,
-    challenges: 30,
-    guild: "DevOps Vanguards",
-  },
-  {
-    rank: 6,
-    name: "AppArchitect",
-    avatarUrl: "/placeholder.svg",
-    xp: 10800,
-    challenges: 28,
-    guild: "Mobile Moguls",
-  },
-  {
-    rank: 7,
-    name: "itzkarthik.cyber",
-    avatarUrl: "/placeholder.svg",
-    xp: 0,
-    challenges: 0,
-    guild: "None",
-  },
-];
+interface LeaderboardUser {
+  rank: number;
+  name: string;
+  avatarUrl: string;
+  xp: number;
+  challenges: number;
+  guild: string;
+  isCurrentUser: boolean;
+}
+
+interface RawLeaderboardData {
+  id: string;
+  first_name: string | null;
+  last_name: string | null;
+  avatar_url: string | null;
+  user_stats: { xp: number; challenges_completed: number } | null;
+  guild_members: { guilds: { name: string } | null }[];
+}
+
+const fetchGlobalLeaderboard = async (currentUserId: string | undefined): Promise<LeaderboardUser[]> => {
+  const { data, error } = await supabase
+    .from("profiles")
+    .select(`
+      id, 
+      first_name, 
+      last_name, 
+      avatar_url,
+      user_stats (xp, challenges_completed),
+      guild_members (guilds (name))
+    `)
+    .order("xp", { ascending: false, foreignTable: "user_stats" })
+    .limit(10);
+
+  if (error) {
+    showError("Failed to load leaderboard.");
+    throw error;
+  }
+
+  return (data as RawLeaderboardData[]).map((user, index) => {
+    const fullName = [user.first_name, user.last_name].filter(Boolean).join(" ") || "Unknown User";
+    const stats = Array.isArray(user.user_stats) ? user.user_stats[0] : user.user_stats;
+    const guildName = user.guild_members && user.guild_members.length > 0 
+      ? (user.guild_members[0].guilds as { name: string } | null)?.name || "None"
+      : "None";
+
+    return {
+      rank: index + 1,
+      name: fullName,
+      avatarUrl: user.avatar_url || "/placeholder.svg",
+      xp: stats?.xp || 0,
+      challenges: stats?.challenges_completed || 0,
+      guild: guildName,
+      isCurrentUser: user.id === currentUserId,
+    };
+  });
+};
 
 const getRankColor = (rank: number) => {
   if (rank === 1) return "text-amber-400";
@@ -86,6 +88,22 @@ const getRankColor = (rank: number) => {
 };
 
 const LeaderboardPage = () => {
+  const { session, loading: sessionLoading } = useSession();
+  const currentUserId = session?.user?.id;
+  
+  const { data: leaderboard, isLoading, error } = useQuery<LeaderboardUser[]>({
+    queryKey: ["globalLeaderboard", currentUserId],
+    queryFn: () => fetchGlobalLeaderboard(currentUserId),
+  });
+
+  if (isLoading || sessionLoading) {
+    return <div className="text-center py-12 text-muted-foreground">Loading leaderboard...</div>;
+  }
+
+  if (error) {
+    return <div className="text-center py-12 text-destructive">Error loading leaderboard: {error.message}</div>;
+  }
+
   return (
     <div className="space-y-8">
       {/* Header */}
@@ -123,8 +141,8 @@ const LeaderboardPage = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {mockLeaderboard.map((user) => (
-                    <TableRow key={user.rank} className={user.name === "itzkarthik.cyber" ? "bg-muted/50" : ""}>
+                  {leaderboard?.map((user) => (
+                    <TableRow key={user.rank} className={user.isCurrentUser ? "bg-muted/50" : ""}>
                       <TableCell className="font-bold text-lg text-center">
                         <div className="flex items-center justify-center">
                           {user.rank <= 3 ? (

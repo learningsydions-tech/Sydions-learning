@@ -15,7 +15,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { showError } from "@/utils/toast";
 import { format } from "date-fns";
-import { Link } from "react-router-dom"; // <-- Missing import added
+import { Link } from "react-router-dom";
 
 interface Profile {
   id: string;
@@ -23,7 +23,8 @@ interface Profile {
   last_name: string | null;
   avatar_url: string | null;
   updated_at: string | null;
-  // Mocked fields for display purposes
+  // Combined fields
+  name: string;
   rank: string;
   xp: number;
   challengesCompleted: number;
@@ -33,7 +34,15 @@ interface Profile {
 const fetchProfile = async (userId: string): Promise<Profile> => {
   const { data, error } = await supabase
     .from("profiles")
-    .select("id, first_name, last_name, avatar_url, updated_at")
+    .select(`
+      id, 
+      first_name, 
+      last_name, 
+      avatar_url, 
+      updated_at,
+      user_stats (xp, challenges_completed),
+      guild_members (guilds (name))
+    `)
     .eq("id", userId)
     .single();
 
@@ -42,16 +51,20 @@ const fetchProfile = async (userId: string): Promise<Profile> => {
     throw error;
   }
 
-  // Combine names and mock stats
+  // Combine names and extract stats
   const fullName = [data.first_name, data.last_name].filter(Boolean).join(" ") || "User";
+  const stats = Array.isArray(data.user_stats) ? data.user_stats[0] : data.user_stats;
+  const guildName = data.guild_members && data.guild_members.length > 0 
+    ? (data.guild_members[0].guilds as { name: string } | null)?.name || "None"
+    : "None";
   
   return {
     ...data,
     name: fullName,
-    rank: "Rookie", // Mock
-    xp: 0, // Mock
-    challengesCompleted: 0, // Mock
-    guild: "None", // Mock
+    rank: stats?.xp > 1000 ? "Veteran" : "Rookie", // Simple mock rank logic
+    xp: stats?.xp || 0,
+    challengesCompleted: stats?.challenges_completed || 0,
+    guild: guildName,
   } as Profile;
 };
 
@@ -132,7 +145,7 @@ const ProfilePage = () => {
                 <Zap className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{profile?.xp}</div>
+                <div className="text-2xl font-bold">{profile?.xp.toLocaleString()}</div>
               </CardContent>
             </Card>
             <Card>

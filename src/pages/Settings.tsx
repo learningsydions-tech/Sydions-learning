@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Save, Bell, Brush, Lock } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
+import ProfileSettingsForm from "@/components/ProfileSettingsForm";
 
 const SettingsPage = () => {
   return (
@@ -41,18 +42,7 @@ const SettingsPage = () => {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-              <div className="space-y-2">
-                <Label htmlFor="username">Username</Label>
-                <Input id="username" defaultValue="itzkarthik.cyber" />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input id="email" type="email" defaultValue="itzkarthik.cyber@gmail.com" />
-              </div>
-              <Button>
-                <Save className="w-4 h-4 mr-2" />
-                Save Changes
-              </Button>
+              <ProfileSettingsForm />
             </CardContent>
           </Card>
         </TabsContent>

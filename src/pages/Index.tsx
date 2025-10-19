@@ -11,7 +11,9 @@ interface Profile {
   id: string;
   first_name: string | null;
   last_name: string | null;
-  // Mocked fields for display purposes
+  avatar_url: string | null;
+  // Combined fields
+  name: string;
   rank: string;
   xp: number;
   challengesCompleted: number;
@@ -20,25 +22,43 @@ interface Profile {
 const fetchProfileForDashboard = async (userId: string): Promise<Profile> => {
   const { data, error } = await supabase
     .from("profiles")
-    .select("id, first_name, last_name")
+    .select(`
+      id, 
+      first_name, 
+      last_name, 
+      avatar_url,
+      user_stats (xp, challenges_completed)
+    `)
     .eq("id", userId)
     .single();
 
   if (error) {
-    // Log error but don't throw, as we can fall back to default values
     console.error("Failed to load dashboard profile:", error);
+    // Fallback structure
+    return {
+      id: userId,
+      first_name: null,
+      last_name: null,
+      avatar_url: null,
+      name: "User",
+      rank: "Rookie",
+      xp: 0,
+      challengesCompleted: 0,
+    };
   }
 
-  const fullName = [data?.first_name, data?.last_name].filter(Boolean).join(" ") || "User";
+  const fullName = [data.first_name, data.last_name].filter(Boolean).join(" ") || "User";
+  const stats = Array.isArray(data.user_stats) ? data.user_stats[0] : data.user_stats;
   
   return {
     id: userId,
-    first_name: data?.first_name || null,
-    last_name: data?.last_name || null,
+    first_name: data.first_name,
+    last_name: data.last_name,
+    avatar_url: data.avatar_url,
     name: fullName,
-    rank: "Rookie", // Mock until we implement leveling system
-    xp: 0, // Mock until we implement XP tracking
-    challengesCompleted: 0, // Mock
+    rank: stats?.xp > 1000 ? "Veteran" : "Rookie", // Simple mock rank logic
+    xp: stats?.xp || 0,
+    challengesCompleted: stats?.challenges_completed || 0,
   } as Profile;
 };
 
@@ -61,12 +81,12 @@ const Dashboard = () => {
   const stats = [
     {
       title: "Active Challenges",
-      value: 0, // Mock
+      value: 0, // Mock until we implement user challenge tracking
       icon: Calendar,
       color: "bg-indigo-500/20 text-indigo-400",
     },
     {
-      title: "Submissions",
+      title: "Challenges Completed",
       value: displayChallenges,
       icon: Users,
       color: "bg-green-500/20 text-green-400",

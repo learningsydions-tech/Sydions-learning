@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   ResizablePanelGroup,
   ResizablePanel,
@@ -7,43 +7,89 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Send } from "lucide-react";
+import { Send, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { useSession } from "@/contexts/SessionContext";
 
-const mockConversations = [
-  {
-    id: 1,
-    name: "karthik",
-    avatarFallback: "K",
-    lastMessage: "Hiii",
-    lastMessageTime: "07:45 PM",
-  },
-  {
-    id: 2,
-    name: "CyberNinja",
-    avatarFallback: "CN",
-    lastMessage: "See you then!",
-    lastMessageTime: "Yesterday",
-  },
-];
+interface Message {
+  sender: "me" | "other";
+  text: string;
+  time: string;
+}
 
-const mockMessages = {
-  1: [
-    { sender: "me", text: "Hi", time: "07:13 PM" },
-    { sender: "karthik", text: "Hello", time: "07:35 PM" },
-    { sender: "me", text: "Hey", time: "07:39 PM" },
-    { sender: "karthik", text: "Hiii", time: "07:45 PM" },
-  ],
-  2: [
-    { sender: "CyberNinja", text: "Let's team up for the next CTF.", time: "Yesterday" },
-    { sender: "me", text: "Sounds good!", time: "Yesterday" },
-    { sender: "CyberNinja", text: "See you then!", time: "Yesterday" },
-  ],
+interface Conversation {
+  id: string;
+  name: string;
+  avatarFallback: string;
+  lastMessage: string;
+  lastMessageTime: string;
+  messages: Message[];
+}
+
+// Mock fetch function using existing profiles
+const fetchConversations = async (userId: string): Promise<Conversation[]> => {
+  // In a real app, this would query a 'conversations' table.
+  // For now, we fetch a few random profiles to simulate conversations.
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("id, first_name, last_name, avatar_url")
+    .neq("id", userId)
+    .limit(2);
+
+  if (error) {
+    console.error("Failed to load conversations:", error);
+    return [];
+  }
+
+  return (data || []).map((p, index) => {
+    const name = [p.first_name, p.last_name].filter(Boolean).join(" ") || `Chat User ${index + 1}`;
+    const fallback = name.slice(0, 2).toUpperCase();
+    
+    return {
+      id: p.id,
+      name: name,
+      avatarFallback: fallback,
+      lastMessage: index === 0 ? "Hey, ready for the challenge?" : "See you then!",
+      lastMessageTime: index === 0 ? "07:45 PM" : "Yesterday",
+      messages: [
+        { sender: "other", text: "Hello!", time: "07:13 PM" },
+        { sender: "me", text: "Hey, what's up?", time: "07:35 PM" },
+        { sender: "other", text: "Just checking in.", time: "07:39 PM" },
+        { sender: "me", text: index === 0 ? "Ready when you are!" : "Sounds good!", time: "07:45 PM" },
+      ],
+    };
+  });
 };
 
 const MessagesPage = () => {
-  const [selectedConversation, setSelectedConversation] = React.useState(mockConversations[0]);
+  const { session, loading: sessionLoading } = useSession();
+  const userId = session?.user?.id;
+  
+  const { data: conversations, isLoading } = useQuery<Conversation[]>({
+    queryKey: ["conversations", userId],
+    queryFn: () => fetchConversations(userId!),
+    enabled: !!userId && !sessionLoading,
+  });
+
+  const [selectedConversation, setSelectedConversation] = useState<Conversation | undefined>(undefined);
+  
+  // Set initial selected conversation once data loads
+  useEffect(() => {
+    if (conversations && conversations.length > 0 && !selectedConversation) {
+      setSelectedConversation(conversations[0]);
+    }
+  }, [conversations, selectedConversation]);
+
+  if (isLoading || sessionLoading) {
+    return (
+      <div className="h-screen flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
 
   return (
     <div className="h-screen">
@@ -55,7 +101,7 @@ const MessagesPage = () => {
             </div>
             <ScrollArea className="flex-1">
               <div className="p-2">
-                {mockConversations.map((convo) => (
+                {conversations?.map((convo) => (
                   <div
                     key={convo.id}
                     className={cn(
@@ -84,9 +130,15 @@ const MessagesPage = () => {
         <ResizablePanel defaultSize={70}>
           {selectedConversation ? (
             <div className="flex flex-col h-full bg-background">
+              <div className="p-4 border-b flex items-center gap-3">
+                <Avatar className="h-10 w-10">
+                  <AvatarFallback>{selectedConversation.avatarFallback}</AvatarFallback>
+                </Avatar>
+                <h3 className="font-semibold">{selectedConversation.name}</h3>
+              </div>
               <ScrollArea className="flex-1 p-6">
                 <div className="space-y-6">
-                  {mockMessages[selectedConversation.id].map((msg, index) => (
+                  {selectedConversation.messages.map((msg, index) => (
                     <div
                       key={index}
                       className={cn(
