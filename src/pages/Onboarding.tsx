@@ -52,8 +52,8 @@ const OnboardingPage = () => {
     },
     onSuccess: () => {
       showSuccess("Setup complete! Welcome to Sydions.");
-      // Force a refresh of the session context to pick up the new username/onboarding status
-      window.location.href = '/dashboard'; 
+      // Navigate to dashboard. SessionContext will handle profile refresh on route change.
+      navigate('/dashboard'); 
     },
     onError: (error) => {
       console.error("Onboarding save failed:", error);
