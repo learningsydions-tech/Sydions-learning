@@ -7,7 +7,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Send, Loader2 } from "lucide-react";
+import { Send, Loader2, Search } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useQuery } from "@tanstack/react-query";
@@ -37,7 +37,7 @@ const fetchConversations = async (userId: string): Promise<Conversation[]> => {
     .from("profiles")
     .select("id, first_name, last_name, avatar_url")
     .neq("id", userId)
-    .limit(2);
+    .limit(5); // Increased limit for better mock data
 
   if (error) {
     console.error("Failed to load conversations:", error);
@@ -52,13 +52,13 @@ const fetchConversations = async (userId: string): Promise<Conversation[]> => {
       id: p.id,
       name: name,
       avatarFallback: fallback,
-      lastMessage: index === 0 ? "Hey, ready for the challenge?" : "See you then!",
-      lastMessageTime: index === 0 ? "07:45 PM" : "Yesterday",
+      lastMessage: index % 2 === 0 ? "Hey, ready for the challenge?" : "See you then!",
+      lastMessageTime: index % 2 === 0 ? "07:45 PM" : "Yesterday",
       messages: [
         { sender: "other", text: "Hello!", time: "07:13 PM" },
         { sender: "me", text: "Hey, what's up?", time: "07:35 PM" },
         { sender: "other", text: "Just checking in.", time: "07:39 PM" },
-        { sender: "me", text: index === 0 ? "Ready when you are!" : "Sounds good!", time: "07:45 PM" },
+        { sender: "me", text: index % 2 === 0 ? "Ready when you are!" : "Sounds good!", time: "07:45 PM" },
       ],
     };
   });
@@ -75,6 +75,7 @@ const MessagesPage = () => {
   });
 
   const [selectedConversation, setSelectedConversation] = useState<Conversation | undefined>(undefined);
+  const [searchTerm, setSearchTerm] = useState("");
   
   // Set initial selected conversation once data loads
   useEffect(() => {
@@ -82,6 +83,10 @@ const MessagesPage = () => {
       setSelectedConversation(conversations[0]);
     }
   }, [conversations, selectedConversation]);
+  
+  const filteredConversations = conversations?.filter(convo => 
+    convo.name.toLowerCase().includes(searchTerm.toLowerCase())
+  ) || [];
 
   if (isLoading || sessionLoading) {
     return (
@@ -96,32 +101,47 @@ const MessagesPage = () => {
       <ResizablePanelGroup direction="horizontal" className="h-full rounded-none border-x">
         <ResizablePanel defaultSize={30} minSize={20} maxSize={40}>
           <div className="flex flex-col h-full">
-            <div className="p-4 border-b">
+            <div className="p-4 border-b space-y-4">
               <h2 className="text-2xl font-bold">Messages</h2>
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                <Input
+                  placeholder="Search users..."
+                  className="pl-10"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </div>
             </div>
             <ScrollArea className="flex-1">
               <div className="p-2">
-                {conversations?.map((convo) => (
-                  <div
-                    key={convo.id}
-                    className={cn(
-                      "flex items-center gap-4 p-3 rounded-lg cursor-pointer transition-colors",
-                      selectedConversation?.id === convo.id
-                        ? "bg-muted"
-                        : "hover:bg-muted/50"
-                    )}
-                    onClick={() => setSelectedConversation(convo)}
-                  >
-                    <Avatar className="h-12 w-12">
-                      <AvatarFallback>{convo.avatarFallback}</AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1 truncate">
-                      <p className="font-semibold">{convo.name}</p>
-                      <p className="text-sm text-muted-foreground truncate">{convo.lastMessage}</p>
+                {filteredConversations.length > 0 ? (
+                  filteredConversations.map((convo) => (
+                    <div
+                      key={convo.id}
+                      className={cn(
+                        "flex items-center gap-4 p-3 rounded-lg cursor-pointer transition-colors",
+                        selectedConversation?.id === convo.id
+                          ? "bg-muted"
+                          : "hover:bg-muted/50"
+                      )}
+                      onClick={() => setSelectedConversation(convo)}
+                    >
+                      <Avatar className="h-12 w-12">
+                        <AvatarFallback>{convo.avatarFallback}</AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1 truncate">
+                        <p className="font-semibold">{convo.name}</p>
+                        <p className="text-sm text-muted-foreground truncate">{convo.lastMessage}</p>
+                      </div>
+                      <span className="text-xs text-muted-foreground">{convo.lastMessageTime}</span>
                     </div>
-                    <span className="text-xs text-muted-foreground">{convo.lastMessageTime}</span>
+                  ))
+                ) : (
+                  <div className="text-center py-8 text-muted-foreground">
+                    No users found.
                   </div>
-                ))}
+                )}
               </div>
             </ScrollArea>
           </div>
