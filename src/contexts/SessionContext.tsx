@@ -41,24 +41,44 @@ export const SessionProvider = ({ children }: { children: React.ReactNode }) => 
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const handleAuthStateChange = async (_event: string, currentSession: Session | null) => {
+    let isMounted = true;
+
+    const loadSessionAndProfile = async (currentSession: Session | null) => {
+      if (!isMounted) return;
+      
       setSession(currentSession);
+      let userProfile: UserProfile | null = null;
+      
       if (currentSession) {
-        const userProfile = await fetchUserProfile(currentSession.user.id);
-        setProfile(userProfile);
-      } else {
-        setProfile(null);
+        userProfile = await fetchUserProfile(currentSession.user.id);
       }
-      setLoading(false);
+      
+      if (isMounted) {
+        setProfile(userProfile);
+        setLoading(false);
+      }
     };
 
-    supabase.auth.getSession().then(async ({ data: { session: initialSession } }) => {
-      await handleAuthStateChange('INITIAL_SESSION', initialSession);
+    // 1. Handle initial session load
+    supabase.auth.getSession().then(({ data: { session: initialSession } }) => {
+      loadSessionAndProfile(initialSession);
+    }).catch((err) => {
+      console.error("Initial session fetch failed:", err);
+      if (isMounted) {
+        setLoading(false); // Ensure loading stops even on error
+      }
     });
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(handleAuthStateChange);
+    // 2. Set up listener for future state changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, currentSession) => {
+      if (isMounted) {
+        // For subsequent changes (SIGN_IN, SIGN_OUT), we handle profile fetching here
+        loadSessionAndProfile(currentSession);
+      }
+    });
 
     return () => {
+      isMounted = false;
       subscription.unsubscribe();
     };
   }, []);
