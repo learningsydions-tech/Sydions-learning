@@ -5,6 +5,7 @@ import {
   PlusCircle,
   Pencil,
   Trash2,
+  Send,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -112,6 +113,27 @@ const ChallengesPage = () => {
       showError(`Failed to delete challenge: ${error.message}`);
     },
   });
+  
+  const publishChallengeMutation = useMutation({
+    mutationFn: async (challengeId: string) => {
+      const { error } = await supabase
+        .from("challenges")
+        .update({ status: 'active' })
+        .eq("id", challengeId);
+
+      if (error) throw error;
+    },
+    onSuccess: (_, challengeId) => {
+      const challenge = challenges?.find(c => c.id === challengeId);
+      showSuccess(`Challenge '${challenge?.title}' published successfully!`);
+      queryClient.invalidateQueries({ queryKey: ["adminChallenges"] });
+      queryClient.invalidateQueries({ queryKey: ["activeChallenges"] });
+    },
+    onError: (error) => {
+      console.error("Challenge publishing failed:", error);
+      showError(`Failed to publish challenge: ${error.message}`);
+    },
+  });
 
   if (isLoading) {
     return <div className="text-center py-12 text-muted-foreground">Loading challenges...</div>;
@@ -124,6 +146,8 @@ const ChallengesPage = () => {
   const activeChallenges = challenges?.filter(c => c.status === 'active') || [];
   const draftChallenges = challenges?.filter(c => c.status === 'draft') || [];
   const archivedChallenges = challenges?.filter(c => c.status === 'archived') || [];
+  
+  const isActionPending = deleteChallengeMutation.isPending || publishChallengeMutation.isPending;
 
   const renderChallengeTable = (list: Challenge[]) => (
     <Table>
@@ -156,6 +180,7 @@ const ChallengesPage = () => {
                     aria-haspopup="true"
                     size="icon"
                     variant="ghost"
+                    disabled={isActionPending}
                   >
                     <MoreHorizontal className="h-4 w-4" />
                     <span className="sr-only">Toggle menu</span>
@@ -163,6 +188,16 @@ const ChallengesPage = () => {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
                   <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                  
+                  {challenge.status === 'draft' && (
+                    <DropdownMenuItem 
+                      onClick={() => publishChallengeMutation.mutate(challenge.id)}
+                      disabled={isActionPending}
+                    >
+                      <Send className="h-4 w-4 mr-2" /> Publish
+                    </DropdownMenuItem>
+                  )}
+                  
                   <DropdownMenuItem asChild>
                     <Link to={`/admin/challenges/edit/${challenge.id}`}>
                       <Pencil className="h-4 w-4 mr-2" /> Edit
@@ -175,6 +210,7 @@ const ChallengesPage = () => {
                       <DropdownMenuItem 
                         onSelect={(e) => e.preventDefault()} // Prevent dropdown closing immediately
                         className="text-destructive focus:text-destructive"
+                        disabled={isActionPending}
                       >
                         <Trash2 className="h-4 w-4 mr-2" /> Delete
                       </DropdownMenuItem>
@@ -187,10 +223,10 @@ const ChallengesPage = () => {
                         </AlertDialogDescription>
                       </AlertDialogHeader>
                       <AlertDialogFooter>
-                        <AlertDialogCancel disabled={deleteChallengeMutation.isPending}>Cancel</AlertDialogCancel>
+                        <AlertDialogCancel disabled={isActionPending}>Cancel</AlertDialogCancel>
                         <AlertDialogAction 
                           onClick={() => deleteChallengeMutation.mutate(challenge.id)}
-                          disabled={deleteChallengeMutation.isPending}
+                          disabled={isActionPending}
                           className="bg-destructive hover:bg-destructive/90"
                         >
                           {deleteChallengeMutation.isPending ? "Deleting..." : "Confirm Delete"}
