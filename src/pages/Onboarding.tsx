@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -6,25 +6,74 @@ import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Code, Palette, Shield } from "lucide-react";
+import { Code, Palette, Shield, CheckCircle, XCircle, Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useUsernameValidation } from "@/hooks/use-username-validation";
+import { useSession } from "@/contexts/SessionContext";
+import { useMutation } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { showError, showSuccess } from "@/utils/toast";
+import { cn } from "@/lib/utils";
 
 const totalSteps = 3;
 
 const OnboardingPage = () => {
+  const { session, loading: sessionLoading } = useSession();
+  const navigate = useNavigate();
+  const userId = session?.user?.id;
+
+  const { username, setUsername, validation } = useUsernameValidation("", userId);
   const [step, setStep] = useState(1);
-  const [username, setUsername] = useState("");
   const [interests, setInterests] = useState<string[]>([]);
   const [skillLevel, setSkillLevel] = useState("");
-  const navigate = useNavigate();
+
+  // Redirect if not logged in or if profile is already complete (handled by SessionContext)
+  useEffect(() => {
+    if (!session && !sessionLoading) {
+      navigate('/login');
+    }
+  }, [session, sessionLoading, navigate]);
+
+  const saveOnboardingMutation = useMutation({
+    mutationFn: async () => {
+      if (!userId) throw new Error("User not authenticated.");
+      if (!validation.isValid || !validation.isAvailable) throw new Error("Invalid username.");
+
+      // Update profile with username and mock onboarding data
+      const { error } = await supabase
+        .from("profiles")
+        .update({
+          username: username,
+          // In a real app, we would save interests and skillLevel here too
+        })
+        .eq("id", userId);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      showSuccess("Setup complete! Welcome to Sydions.");
+      // Force a refresh of the session context to pick up the new username/onboarding status
+      window.location.href = '/dashboard'; 
+    },
+    onError: (error) => {
+      console.error("Onboarding save failed:", error);
+      showError(`Failed to complete setup: ${error.message}`);
+    },
+  });
 
   const handleNext = () => {
+    if (step === 1) {
+      if (!validation.isValid || !validation.isAvailable || validation.isLoading) {
+        showError("Please enter a valid and available username.");
+        return;
+      }
+    }
+    
     if (step < totalSteps) {
       setStep(step + 1);
     } else {
-      // Finish onboarding and redirect to the dashboard
-      console.log("Onboarding complete:", { username, interests, skillLevel });
-      navigate("/");
+      // Finish onboarding
+      saveOnboardingMutation.mutate();
     }
   };
 
@@ -35,6 +84,7 @@ const OnboardingPage = () => {
   };
 
   const progress = (step / totalSteps) * 100;
+  const isPending = saveOnboardingMutation.isPending;
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-muted/40 p-4">
@@ -47,16 +97,35 @@ const OnboardingPage = () => {
         <CardContent className="min-h-[250px]">
           {step === 1 && (
             <div className="space-y-4">
-              <h3 className="font-semibold">Step 1: Choose your username</h3>
+              <h3 className="font-semibold">Step 1: Choose your unique username</h3>
               <div className="space-y-2">
                 <Label htmlFor="username">Username</Label>
-                <Input
-                  id="username"
-                  placeholder="e.g., cyber_warrior"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                />
-                <p className="text-sm text-muted-foreground">This is how other users will see you.</p>
+                <div className="relative">
+                  <Input
+                    id="username"
+                    placeholder="e.g., cyber_warrior"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    required
+                    disabled={isPending}
+                    className={cn(
+                        validation.isValid && validation.isAvailable && "border-green-500 pr-10",
+                        validation.isValid && !validation.isAvailable && "border-destructive pr-10"
+                    )}
+                  />
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                    {validation.isLoading ? (
+                      <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
+                    ) : validation.isValid && validation.isAvailable ? (
+                      <CheckCircle className="w-5 h-5 text-green-500" />
+                    ) : validation.isValid && !validation.isAvailable ? (
+                      <XCircle className="w-5 h-5 text-destructive" />
+                    ) : null}
+                  </div>
+                </div>
+                <p className={cn("text-sm", validation.isValid && !validation.isAvailable ? "text-destructive" : "text-muted-foreground")}>
+                    {validation.message}
+                </p>
               </div>
             </div>
           )}
@@ -117,11 +186,14 @@ const OnboardingPage = () => {
           )}
         </CardContent>
         <CardFooter className="flex justify-between">
-          <Button variant="outline" onClick={handleBack} disabled={step === 1}>
+          <Button variant="outline" onClick={handleBack} disabled={step === 1 || isPending}>
             Back
           </Button>
-          <Button onClick={handleNext}>
-            {step === totalSteps ? "Finish Setup" : "Next"}
+          <Button 
+            onClick={handleNext} 
+            disabled={isPending || (step === 1 && (!validation.isValid || !validation.isAvailable))}
+          >
+            {isPending ? "Finishing..." : step === totalSteps ? "Finish Setup" : "Next"}
           </Button>
         </CardFooter>
       </Card>

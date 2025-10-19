@@ -35,8 +35,9 @@ interface Profile {
   first_name: string | null;
   last_name: string | null;
   avatar_url: string | null;
+  username: string | null; // Added username
   updated_at: string | null;
-  is_admin: boolean; // New field
+  is_admin: boolean;
   // Combined fields
   name: string;
   rank: string;
@@ -55,6 +56,7 @@ const fetchProfile = async (userId: string): Promise<Profile> => {
       first_name, 
       last_name, 
       avatar_url, 
+      username,
       updated_at,
       is_admin,
       user_stats (xp, challenges_completed),
@@ -129,7 +131,7 @@ const ProfilePage = () => {
     ? `Joined on ${format(new Date(session.user.created_at), "MMMM yyyy")}` 
     : "Join date unknown";
     
-  const displayName = profile?.name || userEmail || "Guest";
+  const displayName = profile?.username || profile?.name || userEmail || "Guest";
   const displayAvatar = profile?.avatar_url || "/placeholder.svg";
   const submittedChallenges = profile?.submittedChallenges || [];
   const isAdmin = profile?.is_admin;
@@ -155,7 +157,7 @@ const ProfilePage = () => {
                   </Badge>
                 )}
               </h1>
-              <p className="text-sm text-muted-foreground">{joinDate}</p>
+              <p className="text-sm text-muted-foreground">{profile?.name} | {joinDate}</p>
             </div>
             <Button variant="outline" size="sm" className="ml-auto" asChild>
               <Link to="/settings">

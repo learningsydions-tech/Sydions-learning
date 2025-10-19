@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import { Session, SupabaseClient } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 interface UserProfile {
   id: string;
@@ -8,6 +9,7 @@ interface UserProfile {
   last_name: string | null;
   avatar_url: string | null;
   is_admin: boolean;
+  username: string | null; // Added username
 }
 
 interface SessionContextType {
@@ -23,7 +25,7 @@ const SessionContext = createContext<SessionContextType | undefined>(undefined);
 const fetchUserProfile = async (userId: string): Promise<UserProfile | null> => {
   const { data, error } = await supabase
     .from('profiles')
-    .select('id, first_name, last_name, avatar_url, is_admin')
+    .select('id, first_name, last_name, avatar_url, is_admin, username')
     .eq('id', userId)
     .single();
 
@@ -39,6 +41,8 @@ export const SessionProvider = ({ children }: { children: React.ReactNode }) => 
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
     let isMounted = true;
@@ -56,6 +60,19 @@ export const SessionProvider = ({ children }: { children: React.ReactNode }) => 
       if (isMounted) {
         setProfile(userProfile);
         setLoading(false);
+        
+        // Onboarding Redirection Logic
+        if (currentSession && userProfile && !userProfile.username) {
+            // If user is logged in but missing username, redirect to onboarding
+            if (location.pathname !== '/onboarding') {
+                navigate('/onboarding');
+            }
+        } else if (currentSession && userProfile && userProfile.username) {
+            // If user is logged in and has username, redirect away from onboarding
+            if (location.pathname === '/onboarding') {
+                navigate('/dashboard');
+            }
+        }
       }
     };
 
@@ -81,7 +98,7 @@ export const SessionProvider = ({ children }: { children: React.ReactNode }) => 
       isMounted = false;
       subscription.unsubscribe();
     };
-  }, []);
+  }, [location.pathname]); // Depend on location.pathname to trigger redirection checks
 
   const isAdmin = profile?.is_admin ?? false;
 
