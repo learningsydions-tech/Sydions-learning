@@ -70,7 +70,7 @@ const IndexPage = () => {
           ) : error ? (
             <div className="text-center py-12 text-destructive">Failed to load stats.</div>
           ) : (
-            <div className="grid gap-6 md:grid-cols-3">
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {statsData.map((stat, index) => (
                 <StatDisplay key={index} {...stat} />
               ))}
@@ -81,7 +81,7 @@ const IndexPage = () => {
         {/* Features/Why Join Us Section */}
         <section className="py-20">
             <h2 className="text-4xl font-bold text-center mb-12">Why Join Sydions?</h2>
-            <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
+            <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
                 {features.map((feature, index) => (
                     <Card key={index} className="p-6 text-center hover:shadow-lg transition-shadow">
                         <div className="flex justify-center mb-4">{feature.icon}</div>
@@ -104,11 +104,11 @@ const IndexPage = () => {
           </div>
 
           {isLoading ? (
-            <div className="grid gap-6 md:grid-cols-3">
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
                 {[1, 2, 3].map(i => <Card key={i}><CardContent className="h-40 flex items-center justify-center"><Loader2 className="w-6 h-6 animate-spin text-muted-foreground" /></CardContent></Card>)}
             </div>
           ) : latestChallenges && latestChallenges.length > 0 ? (
-            <div className="grid gap-6 md:grid-cols-3">
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {latestChallenges.map((challenge) => (
                 <Card key={challenge.id} className="hover:shadow-md transition-shadow">
                   <CardHeader>
