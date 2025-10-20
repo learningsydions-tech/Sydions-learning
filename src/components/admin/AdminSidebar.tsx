@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import {
   Home,
@@ -36,7 +36,7 @@ const adminNavItems: AdminNavItem[] = [
   { name: "Settings", icon: Settings, href: "/admin/settings" },
 ];
 
-const AdminNavContent = ({ adminNavItems, currentPath, handleSignOut }: { adminNavItems: AdminNavItem[], currentPath: string, handleSignOut: () => void }) => (
+const AdminNavContent = ({ adminNavItems, currentPath, handleSignOut, onLinkClick }: { adminNavItems: AdminNavItem[], currentPath: string, handleSignOut: () => void, onLinkClick?: () => void }) => (
   <>
     <div className="p-4 border-b border-sidebar-border h-16 flex items-center">
       <h1 className="text-xl font-bold text-sidebar-primary">
@@ -50,6 +50,7 @@ const AdminNavContent = ({ adminNavItems, currentPath, handleSignOut }: { adminN
         className={cn(
           "flex items-center p-3 rounded-lg transition-colors text-sm font-medium text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-foreground"
         )}
+        onClick={onLinkClick} // Close sheet on link click
       >
         <ArrowLeft className="w-5 h-5 mr-3" />
         Back to App
@@ -67,6 +68,7 @@ const AdminNavContent = ({ adminNavItems, currentPath, handleSignOut }: { adminN
                 ? "bg-sidebar-accent text-sidebar-foreground"
                 : "text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-foreground",
             )}
+            onClick={onLinkClick} // Close sheet on link click
           >
             <Icon className="w-5 h-5 mr-3" />
             {item.name}
@@ -79,7 +81,10 @@ const AdminNavContent = ({ adminNavItems, currentPath, handleSignOut }: { adminN
       <Button
         variant="ghost"
         className="w-full justify-start text-sm text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-foreground"
-        onClick={handleSignOut}
+        onClick={() => {
+          handleSignOut();
+          onLinkClick?.(); // Close sheet after sign out
+        }}
       >
         <LogOut className="w-4 h-4 mr-2" />
         Sign out
@@ -92,6 +97,7 @@ const AdminSidebar = () => {
   const location = useLocation();
   const currentPath = location.pathname;
   const { supabase } = useSession();
+  const [isSheetOpen, setIsSheetOpen] = useState(false); // State for mobile sheet
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
@@ -111,7 +117,7 @@ const AdminSidebar = () => {
       {/* Mobile Header and Sheet */}
       <header className="lg:hidden sticky top-0 z-20 w-full bg-background/90 backdrop-blur-sm border-b border-border/50 h-16 flex items-center px-4 justify-between">
         <h1 className="text-xl font-bold text-sidebar-primary">Admin</h1>
-        <Sheet>
+        <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
           <SheetTrigger asChild>
             <Button variant="outline" size="icon">
               <Menu className="h-6 w-6" />
@@ -122,6 +128,7 @@ const AdminSidebar = () => {
               adminNavItems={adminNavItems} 
               currentPath={currentPath} 
               handleSignOut={handleSignOut} 
+              onLinkClick={() => setIsSheetOpen(false)} // Close sheet on link click
             />
           </SheetContent>
         </Sheet>

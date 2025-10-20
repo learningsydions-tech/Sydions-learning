@@ -1,10 +1,10 @@
-import React from "react";
+import React, { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Home, Grid, Compass, MessageSquare, ShoppingBag, Box, User, Users, Shield, Trophy, Settings, LogOut, LucideIcon, Calendar, Menu } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { useSession } from "@/contexts/SessionContext";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"; // Import Sheet components
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 
 interface NavItem {
   name: string;
@@ -14,7 +14,7 @@ interface NavItem {
 }
 
 const baseNavItems: NavItem[] = [
-  { name: "Dashboard", icon: Home, href: "/dashboard" }, // Updated path
+  { name: "Dashboard", icon: Home, href: "/dashboard" },
   { name: "Admin Panel", icon: Grid, href: "/admin", requiresAdmin: true },
   { name: "Challenges", icon: Calendar, href: "/challenges" },
   { name: "Explore", icon: Compass, href: "/explore" },
@@ -28,7 +28,7 @@ const baseNavItems: NavItem[] = [
   { name: "Settings", icon: Settings, href: "/settings" },
 ];
 
-const NavContent = ({ navItems, currentPath, handleSignOut, session, isAdmin }: { navItems: NavItem[], currentPath: string, handleSignOut: () => void, session: any, isAdmin: boolean }) => (
+const NavContent = ({ navItems, currentPath, handleSignOut, session, isAdmin, onLinkClick }: { navItems: NavItem[], currentPath: string, handleSignOut: () => void, session: any, isAdmin: boolean, onLinkClick?: () => void }) => (
   <>
     {/* Logo */}
     <div className="p-4 border-b border-sidebar-border h-16 flex items-center">
@@ -52,6 +52,7 @@ const NavContent = ({ navItems, currentPath, handleSignOut, session, isAdmin }: 
                 ? "bg-sidebar-accent text-sidebar-foreground"
                 : "text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-foreground",
             )}
+            onClick={onLinkClick} // Close sheet on link click
           >
             <Icon className="w-5 h-5 mr-3" />
             {item.name}
@@ -68,7 +69,10 @@ const NavContent = ({ navItems, currentPath, handleSignOut, session, isAdmin }: 
       <Button
         variant="ghost"
         className="w-full justify-start text-sm text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-foreground"
-        onClick={handleSignOut}
+        onClick={() => {
+          handleSignOut();
+          onLinkClick?.(); // Close sheet after sign out
+        }}
       >
         <LogOut className="w-4 h-4 mr-2" />
         Sign out
@@ -81,6 +85,7 @@ const Sidebar = () => {
   const location = useLocation();
   const currentPath = location.pathname;
   const { supabase, session, isAdmin } = useSession();
+  const [isSheetOpen, setIsSheetOpen] = useState(false); // State for mobile sheet
 
   const navItems = baseNavItems.filter(item => !item.requiresAdmin || isAdmin);
 
@@ -104,7 +109,7 @@ const Sidebar = () => {
       {/* Mobile Header and Sheet */}
       <header className="lg:hidden sticky top-0 z-20 w-full bg-background/90 backdrop-blur-sm border-b border-border/50 h-16 flex items-center px-4 justify-between">
         <h1 className="text-xl font-bold text-sidebar-primary">Sydions</h1>
-        <Sheet>
+        <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
           <SheetTrigger asChild>
             <Button variant="outline" size="icon">
               <Menu className="h-6 w-6" />
@@ -117,6 +122,7 @@ const Sidebar = () => {
               handleSignOut={handleSignOut} 
               session={session} 
               isAdmin={isAdmin} 
+              onLinkClick={() => setIsSheetOpen(false)} // Close sheet on link click
             />
           </SheetContent>
         </Sheet>
