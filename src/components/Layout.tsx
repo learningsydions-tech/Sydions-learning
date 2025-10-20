@@ -30,17 +30,19 @@ const Layout: React.FC<LayoutProps> = ({ children, noPadding = false }) => {
     : baseNavItems.filter(item => !item.requiresAdmin || isAdmin);
 
   const NavComponentToRender = isCurrentPathAdmin ? AdminNavContent : NavContent;
+  const headerTitle = isCurrentPathAdmin ? "Admin" : "Sydions";
 
   return (
     <div className="flex min-h-screen bg-background text-foreground">
-      {/* Desktop Sidebar */}
+      {/* Desktop Sidebars */}
       <Sidebar />
-      <AdminSidebar /> {/* AdminSidebar will only render on desktop if path is /admin */}
+      {/* AdminSidebar will only render its content if the path is /admin and on desktop */}
+      {isCurrentPathAdmin && <AdminSidebar />} 
 
       {/* Mobile Header and Sheet */}
       <header className="lg:hidden sticky top-0 z-20 w-full bg-background/90 backdrop-blur-sm border-b border-border/50 h-16 flex items-center px-4 justify-between">
         <h1 className="text-xl font-bold text-sidebar-primary">
-          {isCurrentPathAdmin ? "Admin" : "Sydions"}
+          {headerTitle}
         </h1>
         <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
           <SheetTrigger asChild>
@@ -65,6 +67,7 @@ const Layout: React.FC<LayoutProps> = ({ children, noPadding = false }) => {
       <main className={cn(
         "flex-1 flex flex-col w-full", // Ensure main takes full width
         "lg:ml-64", // Desktop sidebar offset
+        "ml-0", // Ensure no left margin on mobile
         !noPadding && "p-4 lg:p-8", // Responsive padding
         !noPadding && "pt-20 lg:pt-8" // Extra padding for mobile header height (h-16 + p-4)
       )}>
