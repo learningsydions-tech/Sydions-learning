@@ -33,7 +33,7 @@ const Layout: React.FC<LayoutProps> = ({ children, noPadding = false }) => {
   const headerTitle = isCurrentPathAdmin ? "Admin" : "Sydions";
 
   return (
-    <div className="flex min-h-screen bg-background text-foreground">
+    <div className="min-h-screen bg-background text-foreground">
       {/* Desktop Sidebars */}
       <Sidebar />
       {/* AdminSidebar will only render its content if the path is /admin and on desktop */}
@@ -65,11 +65,11 @@ const Layout: React.FC<LayoutProps> = ({ children, noPadding = false }) => {
 
       {/* Main Content Area */}
       <main className={cn(
-        "flex-1 flex flex-col w-full", // Ensure main takes full width
+        "flex flex-col",
         "lg:ml-64", // Desktop sidebar offset
-        "ml-0", // Ensure no left margin on mobile
-        !noPadding && "p-4 lg:p-8", // Responsive padding
-        !noPadding && "pt-20 lg:pt-8" // Extra padding for mobile header height (h-16 + p-4)
+        !noPadding && "p-4 lg:p-8",
+        // Add padding top for mobile header. 5rem = 4rem header + 1rem padding
+        !noPadding && "pt-20 lg:pt-8" 
       )}>
         {/* Page content */}
         <div className="flex-1">
