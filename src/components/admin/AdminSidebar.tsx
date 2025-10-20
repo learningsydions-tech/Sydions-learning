@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import {
   Home,
@@ -12,12 +12,10 @@ import {
   Shield,
   BarChart,
   LogOut,
-  Menu,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { useSession } from "@/contexts/SessionContext";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 
 interface AdminNavItem {
   name: string;
@@ -25,7 +23,7 @@ interface AdminNavItem {
   href: string;
 }
 
-const adminNavItems: AdminNavItem[] = [
+export const adminNavItems: AdminNavItem[] = [
   { name: "Dashboard", icon: Home, href: "/admin" },
   { name: "Challenges", icon: ClipboardList, href: "/admin/challenges" },
   { name: "Manage Shop", icon: ShoppingBag, href: "/admin/shop" },
@@ -36,7 +34,7 @@ const adminNavItems: AdminNavItem[] = [
   { name: "Settings", icon: Settings, href: "/admin/settings" },
 ];
 
-const AdminNavContent = ({ adminNavItems, currentPath, handleSignOut, onLinkClick }: { adminNavItems: AdminNavItem[], currentPath: string, handleSignOut: () => void, onLinkClick?: () => void }) => (
+export const AdminNavContent = ({ adminNavItems, currentPath, handleSignOut, onLinkClick }: { adminNavItems: AdminNavItem[], currentPath: string, handleSignOut: () => void, onLinkClick?: () => void }) => (
   <>
     <div className="p-4 border-b border-sidebar-border h-16 flex items-center">
       <h1 className="text-xl font-bold text-sidebar-primary">
@@ -97,43 +95,20 @@ const AdminSidebar = () => {
   const location = useLocation();
   const currentPath = location.pathname;
   const { supabase } = useSession();
-  const [isSheetOpen, setIsSheetOpen] = useState(false); // State for mobile sheet
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
   };
 
   return (
-    <>
-      {/* Desktop Sidebar */}
-      <div className="hidden lg:flex flex-col h-screen w-64 bg-sidebar text-sidebar-foreground border-r border-sidebar-border fixed top-0 left-0 z-10">
-        <AdminNavContent 
-          adminNavItems={adminNavItems} 
-          currentPath={currentPath} 
-          handleSignOut={handleSignOut} 
-        />
-      </div>
-      
-      {/* Mobile Header and Sheet */}
-      <header className="lg:hidden sticky top-0 z-20 w-full bg-background/90 backdrop-blur-sm border-b border-border/50 h-16 flex items-center px-4 justify-between">
-        <h1 className="text-xl font-bold text-sidebar-primary">Admin</h1>
-        <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
-          <SheetTrigger asChild>
-            <Button variant="outline" size="icon">
-              <Menu className="h-6 w-6" />
-            </Button>
-          </SheetTrigger>
-          <SheetContent side="left" className="p-0 w-64 flex flex-col">
-            <AdminNavContent 
-              adminNavItems={adminNavItems} 
-              currentPath={currentPath} 
-              handleSignOut={handleSignOut} 
-              onLinkClick={() => setIsSheetOpen(false)} // Close sheet on link click
-            />
-          </SheetContent>
-        </Sheet>
-      </header>
-    </>
+    // Desktop Sidebar
+    <div className="hidden lg:flex flex-col h-screen w-64 bg-sidebar text-sidebar-foreground border-r border-sidebar-border fixed top-0 left-0 z-10">
+      <AdminNavContent 
+        adminNavItems={adminNavItems} 
+        currentPath={currentPath} 
+        handleSignOut={handleSignOut} 
+      />
+    </div>
   );
 };
 
