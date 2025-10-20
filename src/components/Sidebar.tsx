@@ -1,10 +1,9 @@
-import React, { useState } from "react";
+import React from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Home, Grid, Compass, MessageSquare, ShoppingBag, Box, User, Users, Shield, Trophy, Settings, LogOut, LucideIcon, Calendar, Menu } from "lucide-react";
+import { Home, Grid, Compass, MessageSquare, ShoppingBag, Box, User, Users, Shield, Trophy, Settings, LogOut, LucideIcon, Calendar } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { useSession } from "@/contexts/SessionContext";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 
 interface NavItem {
   name: string;
@@ -13,7 +12,7 @@ interface NavItem {
   requiresAdmin?: boolean;
 }
 
-const baseNavItems: NavItem[] = [
+export const baseNavItems: NavItem[] = [
   { name: "Dashboard", icon: Home, href: "/dashboard" },
   { name: "Admin Panel", icon: Grid, href: "/admin", requiresAdmin: true },
   { name: "Challenges", icon: Calendar, href: "/challenges" },
@@ -28,13 +27,16 @@ const baseNavItems: NavItem[] = [
   { name: "Settings", icon: Settings, href: "/settings" },
 ];
 
-const NavContent = ({ navItems, currentPath, handleSignOut, session, isAdmin, onLinkClick }: { navItems: NavItem[], currentPath: string, handleSignOut: () => void, session: any, isAdmin: boolean, onLinkClick?: () => void }) => (
+export const NavContent = ({ navItems, currentPath, handleSignOut, session, isAdmin, onLinkClick }: { navItems: NavItem[], currentPath: string, handleSignOut: () => void, session: any, isAdmin: boolean, onLinkClick?: () => void }) => (
   <>
     {/* Logo */}
     <div className="p-4 border-b border-sidebar-border h-16 flex items-center">
-      <h1 className="text-xl font-bold text-sidebar-primary">
-        Sydions - Learning
-      </h1>
+      <Link to="/" className="flex items-center gap-2">
+        <img src="/Sydions_logo.jpg" alt="Sydions Logo" className="h-8 w-8 rounded-full" />
+        <h1 className="text-xl font-bold text-sidebar-primary">
+          Sydions - Learning
+        </h1>
+      </Link>
     </div>
 
     {/* Navigation Links */}
@@ -85,7 +87,6 @@ const Sidebar = () => {
   const location = useLocation();
   const currentPath = location.pathname;
   const { supabase, session, isAdmin } = useSession();
-  const [isSheetOpen, setIsSheetOpen] = useState(false); // State for mobile sheet
 
   const navItems = baseNavItems.filter(item => !item.requiresAdmin || isAdmin);
 
@@ -94,40 +95,16 @@ const Sidebar = () => {
   };
 
   return (
-    <>
-      {/* Desktop Sidebar */}
-      <div className="hidden lg:flex flex-col h-screen w-64 bg-sidebar text-sidebar-foreground border-r border-sidebar-border fixed top-0 left-0 z-10">
-        <NavContent 
-          navItems={navItems} 
-          currentPath={currentPath} 
-          handleSignOut={handleSignOut} 
-          session={session} 
-          isAdmin={isAdmin} 
-        />
-      </div>
-      
-      {/* Mobile Header and Sheet */}
-      <header className="lg:hidden sticky top-0 z-20 w-full bg-background/90 backdrop-blur-sm border-b border-border/50 h-16 flex items-center px-4 justify-between">
-        <h1 className="text-xl font-bold text-sidebar-primary">Sydions</h1>
-        <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
-          <SheetTrigger asChild>
-            <Button variant="outline" size="icon">
-              <Menu className="h-6 w-6" />
-            </Button>
-          </SheetTrigger>
-          <SheetContent side="left" className="p-0 w-64 flex flex-col">
-            <NavContent 
-              navItems={navItems} 
-              currentPath={currentPath} 
-              handleSignOut={handleSignOut} 
-              session={session} 
-              isAdmin={isAdmin} 
-              onLinkClick={() => setIsSheetOpen(false)} // Close sheet on link click
-            />
-          </SheetContent>
-        </Sheet>
-      </header>
-    </>
+    // Desktop Sidebar
+    <div className="hidden lg:flex flex-col h-screen w-64 bg-sidebar text-sidebar-foreground border-r border-sidebar-border fixed top-0 left-0 z-10">
+      <NavContent 
+        navItems={navItems} 
+        currentPath={currentPath} 
+        handleSignOut={handleSignOut} 
+        session={session} 
+        isAdmin={isAdmin} 
+      />
+    </div>
   );
 };
 

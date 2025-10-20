@@ -37,9 +37,12 @@ export const adminNavItems: AdminNavItem[] = [
 export const AdminNavContent = ({ adminNavItems, currentPath, handleSignOut, onLinkClick }: { adminNavItems: AdminNavItem[], currentPath: string, handleSignOut: () => void, onLinkClick?: () => void }) => (
   <>
     <div className="p-4 border-b border-sidebar-border h-16 flex items-center">
-      <h1 className="text-xl font-bold text-sidebar-primary">
-        Sydions - Admin
-      </h1>
+      <Link to="/admin" className="flex items-center gap-2">
+        <img src="/Sydions_logo.jpg" alt="Sydions Logo" className="h-8 w-8 rounded-full" />
+        <h1 className="text-xl font-bold text-sidebar-primary">
+          Sydions - Admin
+        </h1>
+      </Link>
     </div>
 
     <nav className="flex-grow p-2 space-y-1 overflow-y-auto no-scrollbar">

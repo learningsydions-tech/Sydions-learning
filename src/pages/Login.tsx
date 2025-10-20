@@ -25,7 +25,8 @@ const LoginPage = () => {
             Back to Home
           </Link>
         </Button>
-        <div>
+        <div className="flex flex-col items-center">
+          <img src="/Sydions_logo.jpg" alt="Sydions Logo" className="h-16 w-16 mb-4 rounded-full" />
           <h1 className="text-2xl font-bold text-center text-primary">
             Welcome to Sydions
           </h1>

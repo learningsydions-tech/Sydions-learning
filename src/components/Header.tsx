@@ -12,8 +12,11 @@ const Header: React.FC = () => {
     <header className="fixed top-0 left-0 right-0 z-20 bg-background/90 backdrop-blur-sm border-b border-border/50">
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
         {/* Logo/Title */}
-        <Link to="/" className="text-xl font-bold text-primary transition-colors hover:text-accent">
-          Sydions
+        <Link to="/" className="flex items-center gap-2">
+          <img src="/Sydions_logo.jpg" alt="Sydions Logo" className="h-8 w-8 rounded-full" />
+          <span className="text-xl font-bold text-primary transition-colors hover:text-accent">
+            Sydions
+          </span>
         </Link>
 
         {/* Navigation/Action */}
