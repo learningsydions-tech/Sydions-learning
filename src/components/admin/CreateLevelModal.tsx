@@ -4,6 +4,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -86,6 +87,9 @@ const CreateLevelModal: React.FC<CreateLevelModalProps> = ({ isOpen, onClose }) 
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>Create New Level</DialogTitle>
+          <DialogDescription>
+            Define the XP threshold, rank name, and optional reward for a new user level.
+          </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit}>
           <div className="grid gap-4 py-4">

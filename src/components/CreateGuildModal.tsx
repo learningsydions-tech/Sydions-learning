@@ -4,6 +4,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -67,6 +68,9 @@ const CreateGuildModal: React.FC<CreateGuildModalProps> = ({ isOpen, onClose }) 
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>Create New Guild</DialogTitle>
+          <DialogDescription>
+            Fill in the details to create a new guild. You will become the owner.
+          </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit}>
           <div className="grid gap-4 py-4">

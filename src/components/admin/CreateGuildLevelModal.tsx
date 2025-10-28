@@ -4,6 +4,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -82,6 +83,9 @@ const CreateGuildLevelModal: React.FC<CreateGuildLevelModalProps> = ({ isOpen, o
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>Create New Guild Level</DialogTitle>
+          <DialogDescription>
+            Set the XP requirement and optional reward for a new guild level.
+          </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit}>
           <div className="grid gap-4 py-4">
