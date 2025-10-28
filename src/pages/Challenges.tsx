@@ -63,7 +63,7 @@ const fetchActiveChallenges = async (userId: string | undefined): Promise<Challe
   }
 
 
-  const { data, error } = await query;
+  const { data, error } = await query.order("created_at", { ascending: false }); // Ensure ordering is applied here
 
   if (error) {
     showError("Failed to load challenges.");
