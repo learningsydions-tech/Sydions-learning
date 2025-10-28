@@ -14,6 +14,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import ChallengeSubmissionsTab from "@/components/ChallengeSubmissionsTab";
 import AdminChallengeFinalizeButton from "@/components/AdminChallengeFinalizeButton";
+import ChallengeResultsTab from "@/components/ChallengeResultsTab"; // Import the results tab
 
 interface ChallengeDetail {
   id: string;
@@ -25,6 +26,7 @@ interface ChallengeDetail {
   deadline: string | null;
   participation_reward_coins: number;
   completion_reward_coins: number;
+  status: 'draft' | 'active' | 'archived'; // Include status
 }
 
 interface UserChallengeStatus {
@@ -36,7 +38,7 @@ interface UserChallengeStatus {
 const fetchChallengeDetail = async (challengeId: string): Promise<ChallengeDetail> => {
   const { data, error } = await supabase
     .from("challenges")
-    .select("id, title, description, type, difficulty, max_points, deadline, participation_reward_coins, completion_reward_coins")
+    .select("id, title, description, type, difficulty, max_points, deadline, participation_reward_coins, completion_reward_coins, status")
     .eq("id", challengeId)
     .single();
 
@@ -149,13 +151,23 @@ const ChallengeDetailPage = () => {
   const hasSubmitted = userStatus?.status === 'submitted';
   const isSubmitting = submitMutation.isPending;
   
-  // Logic to determine if the review phase is active
+  // Logic to determine phases
   const deadlineDate = challenge.deadline ? new Date(challenge.deadline) : null;
   const reviewPhaseStarts = deadlineDate ? addHours(deadlineDate, 24) : null;
-  const isReviewPhaseActive = reviewPhaseStarts ? isAfter(new Date(), reviewPhaseStarts) : false;
+  const isReviewPhaseActive = challenge.status === 'active' && reviewPhaseStarts ? isAfter(new Date(), reviewPhaseStarts) : false;
+  const isFinalized = challenge.status === 'archived';
   
   
   const renderActionSection = () => {
+    if (isFinalized) {
+        return (
+            <div className="p-4 bg-green-100 dark:bg-green-900/30 border border-green-300 dark:border-green-700 rounded-lg text-green-800 dark:text-green-200">
+                <p className="font-semibold">Challenge Finalized</p>
+                <p className="text-sm mt-1">Results are available in the Results tab.</p>
+            </div>
+        );
+    }
+    
     if (!hasJoined) {
       return (
         <JoinChallengeButton
@@ -213,6 +225,8 @@ const ChallengeDetailPage = () => {
     );
   };
 
+  const tabCount = isFinalized ? 2 : (isReviewPhaseActive ? 2 : 1);
+
   return (
     <div className="space-y-8">
       <Button asChild variant="outline" size="sm">
@@ -249,11 +263,11 @@ const ChallengeDetailPage = () => {
           <h3 className="text-xl font-semibold mt-4">Description</h3>
           <p className="text-muted-foreground whitespace-pre-wrap">{challenge.description}</p>
 
-          {/* Action Section (Join/Submit) */}
-          {!isReviewPhaseActive && renderActionSection()}
+          {/* Action Section (Join/Submit/Finalized) */}
+          {renderActionSection()}
           
           {/* Review Phase Status */}
-          {isReviewPhaseActive && (
+          {isReviewPhaseActive && !isFinalized && (
             <div className="space-y-4">
               <div className="p-4 bg-info/10 border border-info/30 rounded-lg text-info-foreground">
                 <p className="font-semibold flex items-center">
@@ -273,11 +287,12 @@ const ChallengeDetailPage = () => {
         </CardContent>
       </Card>
       
-      {/* Tabs for Overview and Submissions */}
+      {/* Tabs for Overview, Submissions, or Results */}
       <Tabs defaultValue="overview">
-        <TabsList className={`grid w-full grid-cols-${isReviewPhaseActive ? 2 : 1}`}>
+        <TabsList className={`grid w-full grid-cols-${tabCount}`}>
           <TabsTrigger value="overview">Overview</TabsTrigger>
-          {isReviewPhaseActive && <TabsTrigger value="submissions">Submissions & Review</TabsTrigger>}
+          {isReviewPhaseActive && !isFinalized && <TabsTrigger value="submissions">Submissions & Review</TabsTrigger>}
+          {isFinalized && <TabsTrigger value="results">Results</TabsTrigger>}
         </TabsList>
         
         <TabsContent value="overview" className="mt-6">
@@ -294,9 +309,15 @@ const ChallengeDetailPage = () => {
           </Card>
         </TabsContent>
         
-        {isReviewPhaseActive && (
+        {isReviewPhaseActive && !isFinalized && (
           <TabsContent value="submissions" className="mt-6">
             <ChallengeSubmissionsTab challengeId={challengeId!} />
+          </TabsContent>
+        )}
+        
+        {isFinalized && (
+          <TabsContent value="results" className="mt-6">
+            <ChallengeResultsTab challengeId={challengeId!} />
           </TabsContent>
         )}
       </Tabs>

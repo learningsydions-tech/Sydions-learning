@@ -7,18 +7,14 @@ import { supabase } from "@/integrations/supabase/client";
 import { showError } from "@/utils/toast";
 import { useSession } from "@/contexts/SessionContext";
 import { Loader2, ExternalLink, Star } from "lucide-react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar"; // Removed AvatarImage
 import SubmissionRatingForm from "./SubmissionRatingForm";
 
 interface Submission {
   id: string; // This is user_challenges.id
   submission_url: string;
   user_id: string;
-  profiles: {
-    first_name: string | null;
-    last_name: string | null;
-    avatar_url: string | null;
-  } | null;
+  // Removed profiles field
   challenge_ratings: {
     rating: number;
     reviewer_id: string;
@@ -36,7 +32,6 @@ const fetchSubmissions = async (challengeId: string, currentUserId: string): Pro
       id,
       submission_url,
       user_id,
-      profiles (first_name, last_name, avatar_url),
       challenge_ratings (rating, reviewer_id)
     `)
     .eq("challenge_id", challengeId)
@@ -91,10 +86,9 @@ const ChallengeSubmissionsTab: React.FC<ChallengeSubmissionsTabProps> = ({ chall
           <CardDescription>Review and rate projects submitted by other participants (0.0 to 10.0).</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          {submissions.map((submission) => {
-            const profile = submission.profiles;
-            const name = [profile?.first_name, profile?.last_name].filter(Boolean).join(" ") || "Anonymous User";
-            const avatarUrl = profile?.avatar_url || "/placeholder.svg";
+          {submissions.map((submission, index) => {
+            const name = `Submission #${index + 1}`;
+            const avatarFallback = `#${index + 1}`;
             const averageRating = fetchAverageRating(submission.challenge_ratings);
             
             // Find the current user's rating for this submission
@@ -106,8 +100,8 @@ const ChallengeSubmissionsTab: React.FC<ChallengeSubmissionsTabProps> = ({ chall
               <div key={submission.id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 border rounded-lg bg-card">
                 <div className="flex items-center gap-4 flex-1 min-w-0 mb-4 sm:mb-0">
                   <Avatar>
-                    <AvatarImage src={avatarUrl} alt={name} />
-                    <AvatarFallback>{name.charAt(0)}</AvatarFallback>
+                    {/* AvatarImage removed for anonymity */}
+                    <AvatarFallback>{avatarFallback}</AvatarFallback>
                   </Avatar>
                   <div className="min-w-0">
                     <p className="font-semibold truncate">{name}</p>

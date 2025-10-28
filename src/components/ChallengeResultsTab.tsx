@@ -77,7 +77,7 @@ const ChallengeResultsTab: React.FC<ChallengeResultsTabProps> = ({ challengeId }
   if (!results || results.length === 0) {
     return (
       <div className="text-center py-12 text-muted-foreground">
-        Results are not yet finalized.
+        Results are not yet finalized or no participants completed the challenge.
       </div>
     );
   }
